@@ -12,10 +12,9 @@ import six
 from .compat import configparser, unicode
 from .settings import LOCALES, CLDR_TZ_CITIES_URL, CLDR_TERRITORIES_URL, \
                       PO_PATH, PY_PATH
-from .helpers import unicode_url, log
+from .helpers import get_page, log
 
 
-CACHE_DIR = os.path.join(os.path.dirname(__file__), 'cache')
 MISSING_DIR = os.path.join(os.path.dirname(__file__), 'missing')
 
 missing = {
@@ -65,20 +64,7 @@ def mk_location_trans(tzids_list):
         if '_' in city:
             tzloc_list[-1].append(city.replace('_', ' '))
 
-    now_str = datetime.now().date().isoformat()
-    cache_file_name = 'timezones_' + now_str + '.htm'
-    cache_file_path = os.path.join(CACHE_DIR, cache_file_name)
-    try:
-        page = codecs.open(cache_file_path, 'r', ' utf8')
-        log('> Loading timezone data from file (%s)' % cache_file_name)
-    except IOError:
-        log('> Getting timezone data from CLDR website (saving it in %s)'
-            % cache_file_name)
-        html = unicode_url(CLDR_TZ_CITIES_URL)
-        page = codecs.open(cache_file_path, 'w', ' utf8')
-        page.writelines([(l + u'\n') for l in html])
-        page.close()
-        page = codecs.open(cache_file_path, 'r', ' utf8')
+    page = get_page(CLDR_TZ_CITIES_URL)
 
     log('> Processing timezone data')
 
@@ -187,17 +173,7 @@ def mk_ter_trans(ter_dict):
     cache_file_name = 'territories_' + now_str + '.htm'
     cache_file_path = os.path.join(CACHE_DIR, cache_file_name)
 
-    try:
-        page = codecs.open(cache_file_path, 'r', ' utf8')
-        log('> Loading territories data from file (%s)' % cache_file_name)
-    except IOError:
-        log('> Getting territories data from CLDR website (saving it in %s)'
-            % cache_file_name)
-        html = unicode_url(CLDR_TERRITORIES_URL)
-        page = codecs.open(cache_file_path, 'w', ' utf8')
-        page.writelines([(l + '\n') for l in html])
-        page.close()
-        page = codecs.open(cache_file_path, 'r', ' utf8')
+    page = get_page(CLDR_TERRITORIES_URL)
 
     log('> Processing territories data')
 
