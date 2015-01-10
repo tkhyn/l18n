@@ -115,3 +115,10 @@ Step 7: Increase maintenance version number and create a pull request
 
 You just need to increment the 3rd number of the version (as the major and
 minor must match pytz's version) before creating a pull request.
+
+
+.. _CLDR: http://cldr.unicode.org/
+.. _pytz: https://pypi.python.org/pypi/pytz/
+.. _`Olson database`: http://en.wikipedia.org/wiki/Tz_database
+.. _pypi: https://pypi.python.org/pypi
+.. _poedit: http://poedit.net/
