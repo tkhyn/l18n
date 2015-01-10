@@ -5,8 +5,13 @@ Locale internationalization package
 MIT License (see LICENSE.txt)
 """
 
-from setuptools import setup
 import os
+import sys
+
+from setuptools import setup
+from distutils import log
+
+import subprocess
 
 
 # imports __version__ variable
@@ -21,6 +26,50 @@ DEV_STATUS = {'pre': '2 - Pre-Alpha',
               'beta': '4 - Beta',
               'rc': '4 - Beta',
               'final': '5 - Production/Stable'}
+
+
+class PredistBuild(object):
+    """
+    Mixin class to build translation files
+    """
+    def build_trans(self):
+        log.info('building translation files')
+
+        # we need to use buildout, call the following commands in the specified
+        # order, and reverse if an issue is raised
+        cmds = [[os.path.join('bin', 'build')],
+                [os.path.join('bin', 'buildout'), 'parts=build'],
+                ['python', 'bootstrap.py']]
+        cmd = 0
+        while True:
+            try:
+                subprocess.Popen(cmds[cmd]).wait()
+                if not cmd:
+                    break
+                else:
+                    cmd -= 1
+            except OSError:
+                cmd += 1
+                if cmd > 3:
+                    raise RuntimeError('Could not build translation files')
+
+
+cmd_classes = {}
+for cmd in ('sdist', 'bdist_egg', 'bdist_rpm', 'bdist_wininst'):
+    cmd_module_name = 'setuptools.command.' + cmd
+    __import__(cmd_module_name)
+    base_class = getattr(sys.modules[cmd_module_name], cmd)
+
+    def get_run(base_class):
+        def run(self):
+            self.build_trans()
+            return base_class.run(self)
+        return run
+
+    cmd_classes[cmd] = type(cmd + '_build', (base_class, PredistBuild), {
+        'run': get_run(base_class)
+    })
+
 
 # setup function parameters
 setup(
@@ -43,5 +92,6 @@ setup(
         'Topic :: Software Development :: Internationalization'
     ],
     packages=('l18n',),
-    install_requires=('pytz==%d.%d' % __version_info__[:2])
+    install_requires=('pytz==%d.%d' % __version_info__[:2]),
+    cmdclass=cmd_classes,
 )
