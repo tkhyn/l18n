@@ -1,0 +1,29 @@
+syntax: glob
+
+# buildout
+bin
+.installed.cfg
+
+# generated files
+l18n/locale/*
+l18n/__maps.py
+
+# cache directory
+maker/l18n_maker/cache
+
+# test backup files
+*.bak
+
+# setuptools
+build
+dist
+MANIFEST
+*.egg-info
+
+# testing
+.tox
+.coverage
+
+# python binary files
+*.pyc
+__pycache__

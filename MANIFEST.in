@@ -1,0 +1,6 @@
+include LICENSE.txt README.rst CHANGES.rst CONTRIBUTORS.rst
+recursive-include l18n/locale *
+
+recursive-exclude tests *
+recursive-exclude maker *
+exclude *.po
