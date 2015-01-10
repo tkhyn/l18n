@@ -51,18 +51,19 @@ def mk_missing():
     return missing
 
 
-def mk_cit_trans(tzids_list):
+def mk_location_trans(tzids_list):
     """
     Generates a translation files for the given locale and the given page
     """
     current_translation = None
 
-    tzcit_list = []
+    # extracts the location name
+    tzloc_list = []
     for tz in tzids_list:
         city = tz[tz.rfind('/') + 1:]
-        tzcit_list.append([city])
+        tzloc_list.append([city])
         if '_' in city:
-            tzcit_list[-1].append(city.replace('_', ' '))
+            tzloc_list[-1].append(city.replace('_', ' '))
 
     now_str = datetime.now().date().isoformat()
     cache_file_name = 'timezones_' + now_str + '.htm'
@@ -81,7 +82,7 @@ def mk_cit_trans(tzids_list):
 
     log('> Processing timezone data')
 
-    cit_trans = deepcopy(mk_missing()['tz_locations'])
+    location_trans = deepcopy(mk_missing()['tz_locations'])
 
     not_missing = []
 
@@ -135,10 +136,10 @@ def mk_cit_trans(tzids_list):
             en_trans = line[line.rfind(u'\u2039') + 1:line.rfind(u'\u203a')]
 
             try:
-                k = [code in c for c in tzcit_list].index(True)
+                k = [code in c for c in tzloc_list].index(True)
             except ValueError:
                 try:
-                    k = [en_trans in c for c in tzcit_list].index(True)
+                    k = [en_trans in c for c in tzloc_list].index(True)
                 except ValueError:
                     k = -1
 
@@ -152,13 +153,13 @@ def mk_cit_trans(tzids_list):
                 # tzids list
                 key = tzids_list[k]
 
-                if key in cit_trans:
-                    not_missing.append((key, deepcopy(cit_trans[key])))
-                    if not 'en' in cit_trans[key]:
-                        cit_trans[key]['en'] = en_trans
+                if key in location_trans:
+                    not_missing.append((key, deepcopy(location_trans[key])))
+                    if not 'en' in location_trans[key]:
+                        location_trans[key]['en'] = en_trans
                 else:
-                    cit_trans[key] = {'en': en_trans}
-                current_translation = cit_trans[key]
+                    location_trans[key] = {'en': en_trans}
+                current_translation = location_trans[key]
 
     page.close()
 
@@ -173,7 +174,7 @@ def mk_cit_trans(tzids_list):
         log('You may want to remove them from the "missing" translation files')
         log('')
 
-    return cit_trans
+    return location_trans
 
 
 def mk_ter_trans(ter_dict):
@@ -278,7 +279,7 @@ def mk_ter_trans(ter_dict):
     return ter_trans
 
 
-def mk_py(tzids_list, cit_trans, ter_dict, ter_trans):
+def mk_py(tzids_list, location_trans, ter_dict, ter_trans):
     """
     Generate .py file with a dict of default (english) values
     """
@@ -295,9 +296,9 @@ def mk_py(tzids_list, cit_trans, ter_dict, ter_trans):
     not_found = []
     for tz in tzids_list:
         # browse list
-        if cit_trans.get(tz, None):
+        if location_trans.get(tz, None):
             # if a translation exists, save the english in defaults
-            cit_defaults.append(cit_trans[tz]['en'])
+            cit_defaults.append(location_trans[tz]['en'])
         else:
             # if not, save city name and displays a warning
             cit_defaults.append(tz[tz.rfind('/') + 1:])
@@ -350,7 +351,7 @@ def mk_py(tzids_list, cit_trans, ter_dict, ter_trans):
     return cit_defaults
 
 
-def mk_po(loc, tzids_list, cit_defaults, cit_trans, ter_dict, ter_trans):
+def mk_po(loc, tzids_list, cit_defaults, location_trans, ter_dict, ter_trans):
     """
     Generate a .po file for locale loc
     """
@@ -386,7 +387,7 @@ msgstr ""
     # cities
     written = list()
     for tz, default in zip(tzids_list, cit_defaults):
-        t = cit_trans.get(tz, None)
+        t = location_trans.get(tz, None)
         if t and t.get(loc, None) and (not t[loc] == default) \
         and (default not in written):
                 written.append(default)
@@ -419,7 +420,7 @@ def mk_trans():
         pass
 
     tzids_list = pytz.common_timezones
-    cit_trans = mk_cit_trans(tzids_list)
+    location_trans = mk_location_trans(tzids_list)
 
     ter_dict = dict()
     for (k, i) in six.iteritems(pytz.country_names):
@@ -429,13 +430,13 @@ def mk_trans():
             ter_dict[k] = i
     ter_trans = mk_ter_trans(ter_dict)
 
-    cit_defaults = mk_py(tzids_list, cit_trans, ter_dict, ter_trans)
+    cit_defaults = mk_py(tzids_list, location_trans, ter_dict, ter_trans)
 
     for loc in LOCALES:
         if loc == 'en':
             # no need to generate a translation file for english
             continue
-        po_path = mk_po(loc, tzids_list, cit_defaults, cit_trans,
+        po_path = mk_po(loc, tzids_list, cit_defaults, location_trans,
                         ter_dict, ter_trans)
         mk_mo(po_path)
 
