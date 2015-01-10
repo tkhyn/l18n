@@ -3,4 +3,4 @@ recursive-include l18n/locale *
 
 recursive-exclude tests *
 recursive-exclude maker *
-exclude *.po
+recursive-exclude l18n/locale *.po
