@@ -16,19 +16,21 @@ What is l18n?
 
 As you may have noticed, ``l18n`` is a contraction of ``i18n`` and ``l10n``,
 namely 'internationalisation' and 'localization'. It basically provides
-translations for localized names (e.g. places).
+translations for localized names (e.g. places and timezones).
 
 I started writing ``l18n`` when I was looking for translations for the pytz_
 library. Indeed, on a multi-lingual site where users can select the timezone
 they are in, it's much better if they can select in their language, as in some
-cases, the differences with the english name can be significant.
+cases, the differences with the english name can be significant, hence the
+place to look for it when it's sorted in alphabetical order.
 
 And as I am lazy, I thought of a way to - almost - autmatically fetch the
 translations from the CLDR_ (Unicode's Common Locale Data Repository) database.
 
-I decided it was a good start to add other stuff, like territories codes. In
-a near future, I - or contributors - may also add currencies or measurement
-units ...
+Integrating function to link timezone to country codes, there was no reason not
+to try and provide translations also for the latters. In the near future, I -
+or contributors - may also add currencies or measurement units fetched from
+the CLDR database ...
 
 
 How does it work?
@@ -80,6 +82,21 @@ change it, it is rather easy::
 And in case you want to go back to the default language::
 
    >>> l18n.set_language(None)
+
+
+Utilities
+---------
+
+``l18n`` also exposes a few functions that may be helpful in some cases:
+
+``l18n.utils.get_country_tzs(country_code)``
+
+   returns a list of locations for the given country code, sorted in
+   alphabetical order in the currently selected language
+
+``l18n.utils.get_country_code_from_tz(timezone)``
+
+   returns the country code from a given (untranslated) timezone
 
 
 Versionning
