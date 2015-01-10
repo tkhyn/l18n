@@ -3,8 +3,7 @@ l18n
 
 |copyright| 2015 Thomas Khyn
 
-Locale internationalization package. Translations for places, timezones, city
-names ...
+Locale internationalization package. Translations for places, timezones ...
 
 Works with Python 2.6+ and 3.3+
 
@@ -16,7 +15,8 @@ What is l18n?
 
 As you may have noticed, ``l18n`` is a contraction of ``i18n`` and ``l10n``,
 namely 'internationalisation' and 'localization'. It basically provides
-translations for localized names (e.g. places and timezones).
+translations for names used for localization purposes (e.g. places and
+timezones).
 
 I started writing ``l18n`` when I was looking for translations for the pytz_
 library. Indeed, on a multi-lingual site where users can select the timezone
