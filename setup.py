@@ -41,18 +41,29 @@ class PredistBuild(object):
                 [os.path.join('bin', 'buildout'), 'parts=build'],
                 ['python', 'bootstrap.py']]
         cmd = 0
+
+        try:
+            from subprocess import DEVNULL
+        except ImportError:
+            DEVNULL = open(os.devnull, 'wb')
+
         while True:
             try:
-                subprocess.Popen(cmds[cmd]).wait()
+                if subprocess.Popen(cmds[cmd], stderr=DEVNULL,
+                                    stdout=DEVNULL).wait():
+                    raise OSError
                 if not cmd:
                     break
                 else:
                     cmd -= 1
             except OSError:
                 cmd += 1
-                if cmd > 3:
-                    raise RuntimeError('Could not build translation files')
-
+                if cmd > 2:
+                    if os.path.exists(os.path.join(os.path.dirname(__file__),
+                                                   'l18n', '__maps.py')):
+                        break
+                    else:
+                        raise RuntimeError('Could not build translation files')
 
 cmd_classes = {}
 for cmd in ('sdist', 'bdist_egg', 'bdist_rpm', 'bdist_wininst'):
@@ -94,4 +105,5 @@ setup(
     packages=('l18n',),
     install_requires=('pytz==%d.%d' % __version_info__[:2]),
     cmdclass=cmd_classes,
+    zip_safe=False,
 )
