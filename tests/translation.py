@@ -14,7 +14,8 @@ class TranslationTestCase(TestCase):
         l18n.set_language(None)
 
     def test_tz_city_translated(self):
-        self.assertEqual(l18n.tz_locations['Canada/Newfoundland'], u'Terre-Neuve')
+        self.assertEqual(str(l18n.tz_locations['Canada/Newfoundland']),
+                         u'Terre-Neuve')
 
     def test_territory_translated(self):
-        self.assertEqual(l18n.territories['ES'], u'Espagne')
+        self.assertEqual(str(l18n.territories['ES']), u'Espagne')

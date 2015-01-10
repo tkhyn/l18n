@@ -15,7 +15,7 @@ What is l18n?
 
 As you may have noticed, ``l18n`` is a contraction of ``i18n`` and ``l10n``,
 namely 'internationalisation' and 'localization'. It basically provides
-translations for names used for localization purposes (e.g. places and
+lazy translations for names used for localization purposes (e.g. places and
 timezones).
 
 I started writing ``l18n`` when I was looking for translations for the pytz_
@@ -49,25 +49,34 @@ Then, in your code::
 l18n.tz_locations
 
    is a mapping between all the timezones listed in ``pytz.common_timezones``
-   to a human-friendly version of the translated name of the location
+   to a human-friendly **lazy** version of the translated name of the location
    in the current language (see `Selecting the language`_ below). For example,
    if the language is English::
 
       >>> l18n.tz_locations['Pacific/Easter']
+      L18NLazyString <Easter Island>
+      >>> str(l18n.tz_locations['Pacific/Easter'])
       'Easter Island'
 
    In French, it would give::
 
-      >>> l18n.tz_locations['Pacific/Easter']
+      >>> str(l18n.tz_locations['Pacific/Easter'])
       'Île de Pâques'
 
 l18n.territories
 
    is a mapping between the territory codes as defined in the CLDR_ and their
-   localized names. For example::
+   localized names, lazily defined. For example::
 
-      >>> l18n.territories['CZ']
+      >>> str(l18n.territories['CZ'])
       'Czech Republic'  # or 'République Tchèque' in french
+
+
+.. note::
+
+   The values are translated each time they are evaluated, there is no caching.
+   This means that the same L18NLazyString instance can be used and produce
+   2 different outputs if you change the language between the evaluations.
 
 
 Selecting the language
@@ -77,7 +86,12 @@ By default, when importing ``l18n``, the current default locale is used (via
 ``locale.getdefaultlocale()``). If it is not the one you want or if you need to
 change it, it is rather easy::
 
+   >>> l18n.set_language('en')
+   >>> str(l18n.tz_locations['Pacific/Easter'])
+   'Easter Island'
    >>> l18n.set_language('fr')
+   >>> str(l18n.tz_locations['Pacific/Easter'])
+   'Île de Pâques'
 
 And in case you want to go back to the default language::
 
