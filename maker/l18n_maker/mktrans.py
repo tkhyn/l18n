@@ -56,98 +56,95 @@ def mk_location_trans(tzids_list):
     """
     current_translation = None
 
-    # extracts the location name
+    # extracts the location names
     tzloc_list = []
     for tz in tzids_list:
-        city = tz[tz.rfind('/') + 1:]
-        tzloc_list.append([city])
-        if '_' in city:
-            tzloc_list[-1].append(city.replace('_', ' '))
+        loc_split = tz.split('/')
+        location = loc_split[-1]
+        tzloc_list.append([location])
+        if '_' in location:
+            tzloc_list[-1].append(location.replace('_', ' '))
 
     page = get_page(CLDR_TZ_CITIES_URL)
 
     log('> Processing timezone data')
 
     location_trans = deepcopy(mk_missing()['tz_locations'])
-
     not_missing = []
 
-    for raw_line in page:
+    def is_key_row(tag):
+        if tag.name != 'tr' or tag.text == '\n':
+            return False
+        for c in tag.children:
+            if c.name != 'th' or c.get('class', None) != ['path']:
+                return False
+        return True
 
-        line = unicode(raw_line)
-        i = line.find(u'<th class=\'path\'>')
+    def is_value_row(tag):
+        if tag.name != 'tr':
+            return False
+        for i, c in enumerate(tag.children):
+            if c.name != ('td' if i else 'th') \
+            or c.get('class', None) != ['td' if i else 'value']:
+                return False
+        return True
 
-        if i == -1:
-            if current_translation:
-                # if the current city is not ignored
-                i = line.find(u'<th class=\'value\'>')
-                if i != -1:
-                    # if the matching string for a translation is found
+    for tr_path in page.find_all(is_key_row):
 
-                    # gets the translation
-                    trans = line[i + 18:line.find(u'</th>', i + 18)]
+        # get the code for the location
+        code = tr_path.contents[0].contents[0].text.split('/')[-1]
 
-                    # remove <span> tag in the translation
-                    j = trans.find(u'>')
-                    if j != -1:
-                        trans = trans[j + 1:trans.find(u'</span>')]
+        # get english translation
+        en_trans = tr_path.contents[1].text[10:-1]
 
-                    # go to next line
-                    line = unicode(six.next(page))
-                    # extract locales and remove tags
-                    line = line[line.find(u'\xb7') + 1:line.rfind(u'\xb7')] \
-                               .strip().replace(u'<b>', u'') \
-                               .replace(u'</b>', u'').replace(u'<i>', u'') \
-                               .replace(u'</i>', u'')
-                    # split locales according to middle point character
-                    locs = line.split(u'\xb7')
-
-                    # browse identified locales
-                    for loc in locs:
-                        if loc in LOCALES and loc not in current_translation:
-                            # if the locale is required, save the translation
-                            current_translation[loc] = trans
+        # looking for the entry in tzloc_list
+        for k, c in enumerate(tzloc_list):
+            if code in c:
+                break
+            elif en_trans in c:
+                k_en = k
         else:
-            # key value
-            code = re.match(".*<a name='[a-f0-9]{14,16}' "
-                            "href='\\#[a-f0-9]{14,16}'>([^<]+)</a>.*",
-                            line).groups()[0]
-
-            # get only last component
-            k = code.rfind('/')
-            if k != -1:
-                code = code[k + 1:]
-
-            # get english translation
-            en_trans = line[line.rfind(u'\u2039') + 1:line.rfind(u'\u203a')]
-
             try:
-                k = [code in c for c in tzloc_list].index(True)
-            except ValueError:
-                try:
-                    k = [en_trans in c for c in tzloc_list].index(True)
-                except ValueError:
-                    k = -1
+                k = k_en
+            except NameError:
+                # current code was not found in the timezone ids list, it is
+                # therefore not necessary and we can skip it
+                continue
 
-            if k == -1:
-                # default value, consider that code is not found in the tzids
-                # list if neither the code or the english is in the cities
-                # list, then the city is not needed and can be ignored
-                current_translation = None
-            else:
-                # if the code or english translation matches an element in the
-                # tzids list
-                key = tzids_list[k]
+        # if we are here, the code or english translation matches an element
+        # in the tzids list, and we can initialize a translation
+        key = tzids_list[k]
 
-                if key in location_trans:
-                    not_missing.append((key, deepcopy(location_trans[key])))
-                    if not 'en' in location_trans[key]:
-                        location_trans[key]['en'] = en_trans
-                else:
-                    location_trans[key] = {'en': en_trans}
-                current_translation = location_trans[key]
+        if key in location_trans:
+            not_missing.append((key, deepcopy(location_trans[key])))
+            if not 'en' in location_trans[key]:
+                location_trans[key]['en'] = en_trans
+        else:
+            location_trans[key] = {'en': en_trans}
 
-    page.close()
+
+        # look up values
+        tr_value = tr_path.next_sibling
+        while is_value_row(tr_value):
+
+            # gets the translation
+            trans_th = tr_value.contents[0]
+            try:
+                trans = trans_th.contents[0].text
+            except AttributeError:
+                trans = trans_th.text
+
+            # gets the matching locales
+            locs = re.findall(u'(?:\xb7(.*?)\xb7)', tr_value.contents[1].text)
+
+            # browse identified locales
+            current_translation = location_trans[key]
+            for loc in locs:
+                if loc in LOCALES and loc not in current_translation:
+                    # if the locale is required, save the translation
+                    current_translation[loc] = trans
+
+            tr_value = tr_value.next_sibling
 
     if not_missing:
         log('')
@@ -168,10 +165,6 @@ def mk_ter_trans(ter_dict):
     Generates a translation files for the given locale and the given page
     """
     current_translation = None
-
-    now_str = datetime.now().date().isoformat()
-    cache_file_name = 'territories_' + now_str + '.htm'
-    cache_file_path = os.path.join(CACHE_DIR, cache_file_name)
 
     page = get_page(CLDR_TERRITORIES_URL)
 
@@ -238,8 +231,6 @@ def mk_ter_trans(ter_dict):
                 else:
                     ter_trans[code] = {'en': en_trans}
                 current_translation = ter_trans[code]
-
-    page.close()
 
     if not_missing:
         log('')
@@ -387,13 +378,7 @@ def mk_mo(po_path):
 
 def mk_trans():
 
-    log('Starting cities and territories names translation')
-
-    try:
-        os.makedirs(CACHE_DIR)
-    except OSError:
-        # directory exists
-        pass
+    log('Starting locations and territories names translation')
 
     tzids_list = pytz.common_timezones
     location_trans = mk_location_trans(tzids_list)
