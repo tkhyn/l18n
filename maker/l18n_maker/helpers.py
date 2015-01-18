@@ -1,53 +1,47 @@
 from __future__ import print_function
 
 import os
-import codecs
-from datetime import datetime
+import zipfile
+import StringIO
 
-from .compat import urllib2
+import requests
 
+from .settings import CLDR_DATA_URL
 
-CACHE_DIR = os.path.join(os.path.dirname(__file__), 'cache')
-
-
-def unicode_url(url):
-
-    ctnt = urllib2.urlopen(url).read()
-
-    uctnt = unicode(ctnt, 'utf-8')
-    line = ''
-    i = 0
-    j = 0
-
-    while j > -1:
-        j = uctnt.find(u'\n', i)
-        line = uctnt[i:j]
-        i = j + 1
-        yield line
-    return
+DATA_DIR = os.path.join(os.path.dirname(__file__), 'cldr_db')
 
 
-def get_page(url):
+_get_data_dir_called = False
+
+
+def get_data_dir():
     """
-    Retrieves a page from an URL and cache it
+    Retrieves the latest CLDR database, unzip and saves it, returns the version
     """
-    now_str = datetime.now().date().isoformat()
-    cache_file_name, ext = os.path.splitext(url.split('/')[-1].split('.'))
-    cache_file_name += '_' + now_str + ext
-    cache_file_path = os.path.join(CACHE_DIR, cache_file_name)
+    global _get_data_dir_called
 
-    try:
-        page = codecs.open(cache_file_path, 'r', ' utf8')
-        log('> Loading timezone data from file (%s)' % cache_file_name)
-    except IOError:
-        log('> Getting timezone data from CLDR website (saving it in %s)'
-            % cache_file_name)
-        html = unicode_url(url)
-        page = codecs.open(cache_file_path, 'w', ' utf8')
-        page.writelines([(l + u'\n') for l in html])
-        page.close()
-        page = codecs.open(cache_file_path, 'r', ' utf8')
+    request = requests.get(CLDR_DATA_URL)
 
+    version = request.url.split('/')[-2]
+
+    data_dir = os.path.join(DATA_DIR, version)
+
+    if os.path.exists(data_dir):
+        if not _get_data_dir_called:
+            log('> Loading data from cached data (%s)' % data_dir)
+    else:
+        try:
+            os.makedirs(data_dir)
+        except OSError:
+            pass  # DATA_DIR exists
+        log('> Downloading CLDR database version %s' % version)
+        request = requests.get(CLDR_DATA_URL + '/core.zip')
+        z = zipfile.ZipFile(StringIO.StringIO(request.content))
+        log('> Extracting CLDR database to %s' % data_dir)
+        z.extractall(data_dir)
+
+    _get_data_dir_called = True
+    return os.path.join(data_dir, 'common')
 
 
 def log(msg):

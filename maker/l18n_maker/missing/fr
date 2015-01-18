@@ -1,4 +1,4 @@
-[tz_locations]
+[tz_cities]
 Africa/Juba=Djouba
 America/Montreal=Montréal
 Antarctica/Macquarie=Île Macquarie
@@ -11,7 +11,6 @@ Canada/Mountain=Rocheuses
 Canada/Newfoundland=Terre-Neuve
 Canada/Pacific=Terre-Neuve
 Pacific/Bougainville=Île Bougainville
-Pacific/Easter=Île de Pâques
 US/Central=Centre
 US/Eastern=Est
 US/Hawaii=Hawaï

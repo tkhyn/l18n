@@ -1,4 +1,3 @@
-import re
 import os
 import codecs
 from collections import defaultdict
@@ -8,19 +7,18 @@ from copy import deepcopy
 import pytz
 import polib
 import six
+from lxml import etree as ET
 
-from .compat import configparser, unicode
-from .settings import LOCALES, CLDR_TZ_CITIES_URL, CLDR_TERRITORIES_URL, \
-                      PO_PATH, PY_PATH
-from .helpers import get_page, log
+from .compat import configparser
+from .settings import LOCALES, PO_PATH, PY_PATH
+from .helpers import get_data_dir, log
 
 
 MISSING_DIR = os.path.join(os.path.dirname(__file__), 'missing')
 
-missing = {
-    'tz_locations': defaultdict(lambda: {}),
-    'territories': defaultdict(lambda: {})
-}
+ITEMS = ('tz_cities', 'territories')
+
+missing = defaultdict(lambda: dict([(i, {}) for i in ITEMS]))
 
 
 def mk_missing():
@@ -31,231 +29,98 @@ def mk_missing():
     for locfile in os.listdir(MISSING_DIR):
 
         tr = configparser.ConfigParser()
-
-        if locfile != 'en':
-            tr.readfp(codecs.open(os.path.join(MISSING_DIR, 'en'),
-                                  'r', 'utf8'))
-
-        # last files override previous ones
         tr.readfp(codecs.open(os.path.join(MISSING_DIR, locfile), 'r', 'utf8'))
 
-        for k, v in six.iteritems(missing):
+        for i in ITEMS:
             try:
-                items = tr.items(k)
+                items = tr.items(i)
             except configparser.NoSectionError:
                 continue
             for item, value in items:
-                v[item][locfile] = value
+                missing[locfile][i][item] = value
 
     return missing
 
 
-def mk_location_trans(tzids_list):
-    """
-    Generates a translation files for the given locale and the given page
-    """
-    current_translation = None
+def mk_locale_trans(loc, defaults=None):
 
-    # extracts the location name
-    tzloc_list = []
-    for tz in tzids_list:
-        city = tz[tz.rfind('/') + 1:]
-        tzloc_list.append([city])
-        if '_' in city:
-            tzloc_list[-1].append(city.replace('_', ' '))
+    if defaults is None:
+        assert loc == 'en', 'defaults cannot be None unless locale is "en"'
+        defaults = defaultdict(lambda: {})
 
-    page = get_page(CLDR_TZ_CITIES_URL)
+    ldml = ET.parse(os.path.join(get_data_dir(), 'main',
+                                 '%s.xml' % loc)).getroot()
 
-    log('> Processing timezone data')
+    trans_dict = deepcopy(mk_missing()[loc])
+    missing = defaultdict(lambda: [])
+    not_missing_overrides = defaultdict(lambda: [])
+    not_missing_same = defaultdict(lambda: [])
 
-    location_trans = deepcopy(mk_missing()['tz_locations'])
 
-    not_missing = []
-
-    for raw_line in page:
-
-        line = unicode(raw_line)
-        i = line.find(u'<th class=\'path\'>')
-
-        if i == -1:
-            if current_translation:
-                # if the current city is not ignored
-                i = line.find(u'<th class=\'value\'>')
-                if i != -1:
-                    # if the matching string for a translation is found
-
-                    # gets the translation
-                    trans = line[i + 18:line.find(u'</th>', i + 18)]
-
-                    # remove <span> tag in the translation
-                    j = trans.find(u'>')
-                    if j != -1:
-                        trans = trans[j + 1:trans.find(u'</span>')]
-
-                    # go to next line
-                    line = unicode(six.next(page))
-                    # extract locales and remove tags
-                    line = line[line.find(u'\xb7') + 1:line.rfind(u'\xb7')] \
-                               .strip().replace(u'<b>', u'') \
-                               .replace(u'</b>', u'').replace(u'<i>', u'') \
-                               .replace(u'</i>', u'')
-                    # split locales according to middle point character
-                    locs = line.split(u'\xb7')
-
-                    # browse identified locales
-                    for loc in locs:
-                        if loc in LOCALES and loc not in current_translation:
-                            # if the locale is required, save the translation
-                            current_translation[loc] = trans
-        else:
-            # key value
-            code = re.match(".*<a name='[a-f0-9]{14,16}' "
-                            "href='\\#[a-f0-9]{14,16}'>([^<]+)</a>.*",
-                            line).groups()[0]
-
-            # get only last component
-            k = code.rfind('/')
-            if k != -1:
-                code = code[k + 1:]
-
-            # get english translation
-            en_trans = line[line.rfind(u'\u2039') + 1:line.rfind(u'\u203a')]
-
-            try:
-                k = [code in c for c in tzloc_list].index(True)
-            except ValueError:
-                try:
-                    k = [en_trans in c for c in tzloc_list].index(True)
-                except ValueError:
-                    k = -1
-
-            if k == -1:
-                # default value, consider that code is not found in the tzids
-                # list if neither the code or the english is in the cities
-                # list, then the city is not needed and can be ignored
-                current_translation = None
+    def save_trans(name, key, trans, store_not_missing=True):
+        cur_trans = trans_dict[name].get(key, None)
+        if cur_trans and store_not_missing:
+            # a translation is already defined
+            if cur_trans == trans:
+                not_missing_same[name].append(key)
             else:
-                # if the code or english translation matches an element in the
-                # tzids list
-                key = tzids_list[k]
-
-                if key in location_trans:
-                    not_missing.append((key, deepcopy(location_trans[key])))
-                    if not 'en' in location_trans[key]:
-                        location_trans[key]['en'] = en_trans
-                else:
-                    location_trans[key] = {'en': en_trans}
-                current_translation = location_trans[key]
-
-    page.close()
-
-    if not_missing:
-        log('')
-        log('Some timezone translations are defined in the "missing" '
-            'translation file but were actually found in the database:')
-        for timezone, tr in not_missing:
-            log('%s in :\n    %s' % (timezone,
-                                     '\n    '.join(['%s (%s)' % i for i
-                                                    in six.iteritems(tr)])))
-        log('You may want to remove them from the "missing" translation files')
-        log('')
-
-    return location_trans
-
-
-def mk_ter_trans(ter_dict):
-    """
-    Generates a translation files for the given locale and the given page
-    """
-    current_translation = None
-
-    now_str = datetime.now().date().isoformat()
-    cache_file_name = 'territories_' + now_str + '.htm'
-    cache_file_path = os.path.join(CACHE_DIR, cache_file_name)
-
-    page = get_page(CLDR_TERRITORIES_URL)
-
-    log('> Processing territories data')
-
-    ter_trans = deepcopy(mk_missing()['territories'])
-    not_missing = []
-
-    for raw_line in page:
-
-        line = unicode(raw_line)
-        i = line.find(u'<th class=\'path\'>')
-
-        if i == -1:
-            if current_translation:
-                # if the current city is not ignored
-                i = line.find(u'<th class=\'value\'>')
-                if i != -1:
-                    # if the matching string for a translation is found
-
-                    # gets the translation
-                    trans = line[i + 18:line.find(u'</th>', i + 18)]
-                    # remove <span> tag in the translation
-                    j = trans.find(u'>')
-                    if j != -1:
-                        trans = trans[j + 1:trans.find(u'</span>')]
-
-                    # go to next line
-                    line = unicode(six.next(page))
-                    # extract locales and remove tags
-                    line = line[line.find(u'\xb7') + 1:line.rfind(u'\xb7')] \
-                               .strip().replace(u'<b>', u'') \
-                               .replace(u'</b>', u'').replace(u'<i>', u'') \
-                               .replace(u'</i>', u'')
-                    # split locales according to middle point character
-                    locs = line.split(u'\xb7')
-
-                    # browse identified locales
-                    for loc in locs:
-                        if loc in LOCALES and loc not in current_translation:
-                            # if the locale is required, save the translation
-                            current_translation[loc] = trans
-
+                not_missing_overrides[name].append((trans, cur_trans))
         else:
-            # key value
-            code = re.match(".*<a name='[a-f0-9]{14,16}' "
-                            "href='\\#[a-f0-9]{14,16}'>([^<]+)</a>.*",
-                            line).groups()[0]
-
-            # get english translation
-            en_trans = line[line.rfind(u'\u2039') + 1:line.rfind(u'\u203a')]
-
-            default = ter_dict.get(code, None)
-
-            if default == None:
-                # not found
-                current_translation = None
-            else:
-                # found, set english translation and current dictionnary entry
-                if code in ter_trans:
-                    not_missing.append((code, deepcopy(ter_trans[code])))
-                    if 'en' not in ter_trans:
-                        ter_trans[code] = en_trans
-                else:
-                    ter_trans[code] = {'en': en_trans}
-                current_translation = ter_trans[code]
-
-    page.close()
-
-    if not_missing:
-        log('')
-        log('Some territories translations are defined in the "missing" '
-            'translation file but were actually found in the database:')
-        for territory, tr in six.iteritems(not_missing):
-            log('%s in :\n    %s' % (territory,
-                                     '\n    '.join(['%s (%s)' % i for i
-                                                    in six.iteritems(tr)])))
-        log('You may want to remove them from the "missing" translation files')
-        log('')
-
-    return ter_trans
+            # no existing translation is defined, save it if different than
+            # default value
+            if trans != defaults[name].get(key, None):
+                trans_dict[name][key] = trans
 
 
-def mk_py(tzids_list, location_trans, ter_dict, ter_trans):
+    tz_required = set(pytz.common_timezones) \
+                      .difference(defaults['tz_cities'].keys())
+    for zone in ldml.find('dates').find('timeZoneNames'):
+        if zone.tag != 'zone':
+            continue
+
+        key = zone.get('type')
+        try:
+            tz_required.remove(key)
+        except KeyError:
+            if key not in pytz.common_timezones:
+                continue
+
+        ex_city = zone.find('exemplarCity')
+        if ex_city is None:
+            city = key.split('/')[-1]
+        else:
+            city = ex_city.text
+        save_trans('tz_cities', key, city)
+    if loc == 'en':
+        # populate missing default translations with raw city names
+        for zone in tz_required:
+            city = zone.split('/')[-1]
+            save_trans('tz_cities', zone, city, store_not_missing=False)
+    else:
+        # report missing translations
+        missing['tz_cities'].extend(tz_required)
+
+
+    ter_required = set(pytz.country_names.keys()) \
+                       .difference(defaults['territories'].keys())
+    for territory in ldml.find('localeDisplayNames').find('territories'):
+        if territory.tag != 'territory' \
+        or territory.get('alt', None) is not None:
+            continue
+        key = territory.get('type')
+        save_trans('territories', key, territory.text)
+        try:
+            ter_required.remove(key)
+        except KeyError:
+            pass
+    missing['territories'].extend(ter_required)
+
+    return trans_dict, missing, not_missing_overrides, not_missing_same
+
+
+
+
+def mk_py(trans):
     """
     Generate .py file with a dict of default (english) values
     """
@@ -264,70 +129,22 @@ def mk_py(tzids_list, location_trans, ter_dict, ter_trans):
 
     py_file = codecs.open(PY_PATH, 'w', ' utf8')
     py_file.write('# -*- coding: utf-8 -*-\n\n'
-                  '# AUTOMATICALLY GENERATED FILE, DO NOT EDIT\n\n'
-                  'tz_locations = {\n')
+                  '# AUTOMATICALLY GENERATED FILE, DO NOT EDIT')
 
-    # cities
-    cit_defaults = list()
-    not_found = []
-    for tz in tzids_list:
-        # browse list
-        if location_trans.get(tz, None):
-            # if a translation exists, save the english in defaults
-            cit_defaults.append(location_trans[tz]['en'])
-        else:
-            # if not, save city name and displays a warning
-            cit_defaults.append(tz[tz.rfind('/') + 1:])
-            not_found.append(tz)
-        # write default translation in py file
-        py_file.write(u"    '%s': u'%s',\n"
-                      % (tz, cit_defaults[-1].replace(u"'", u"\\'")))
+    def write(name):
+        py_file.write('\n\n%s = {\n' % name)
+        for k, v in six.iteritems(trans[name]):
+            py_file.write(u"    '%s': u'%s',\n" % (k, v.replace(u"'", u"\\'")))
+        py_file.write('}')
 
-    if not_found:
-        log('')
-        log('Warning: no translation entry found for the following tzs:')
-        for tz in not_found:
-            print(tz)
-        log('You may want to append them to the appropriate locale file(s) in '
-            'the "missing" directory')
-        log('')
-
-    py_file.write('}')
-
-    # territory names
-    not_found = []
-    py_file.write('\n\nterritories = {\n')
-    for (k, d) in six.iteritems(ter_dict):
-        # browse list
-        if ter_trans.get(k, None):
-            # if a translation exists, save the english in defaults
-            ter_dict[k] = ter_trans[k]['en']
-        else:
-            # if not, don't change anything and add to not_found list
-            not_found.append((d, k))
-        # write default translation in py file
-        py_file.write(u"    '%s': u'%s',\n"
-                      % (k, ter_dict[k].replace(u"'", u"\\'")))
-
-    if not_found:
-        log('')
-        log('Warning: no translation entry found for the following '
-            'territories:')
-        for t, k in not_found:
-            print('%s (%s)' % (k, t))
-        log('You may want to append them to the appropriate locale file(s) in '
-            'the "missing" directory')
-        log('')
-
-    py_file.write('}\n')
+    for name in ITEMS:
+        write(name)
 
     # close file
     py_file.close()
 
-    return cit_defaults
 
-
-def mk_po(loc, tzids_list, cit_defaults, location_trans, ter_dict, ter_trans):
+def mk_po(loc, trans_en, trans):
     """
     Generate a .po file for locale loc
     """
@@ -360,23 +177,15 @@ msgstr ""
 
     po_file = codecs.open(po_path, 'w', ' utf8')
     po_file.write(header + loc + u'\\n"\n\n')
-    # cities
-    written = list()
-    for tz, default in zip(tzids_list, cit_defaults):
-        t = location_trans.get(tz, None)
-        if t and t.get(loc, None) and (not t[loc] == default) \
-        and (default not in written):
-                written.append(default)
-                po_file.write(u'msgid "' + default + u'"\nmsgstr "' +
-                              t[loc] + u'"\n\n')
-    # territories
-    for t, default in six.iteritems(ter_dict):
-        ttr = ter_trans.get(t, None)
-        if ttr and ttr.get(loc, None) and (not ttr[loc] == default) \
-        and (default not in written):
-            written.append(default)
-            po_file.write(u'msgid "' + default + u'"\nmsgstr "' +
-                          ttr[loc] + u'"\n\n')
+
+    def write(name):
+        for k, v in six.iteritems(trans[name]):
+            po_file.write(u'msgid "' + trans_en[name][k] + \
+                          u'"\nmsgstr "' + v + u'"\n\n')
+
+    for name in ITEMS:
+        write(name)
+
     po_file.close()
     return po_path
 
@@ -389,31 +198,54 @@ def mk_trans():
 
     log('Starting cities and territories names translation')
 
-    try:
-        os.makedirs(CACHE_DIR)
-    except OSError:
-        # directory exists
-        pass
+    # translations, missing, overriden in 'missing' folder, same value in
+    # missing folder
+    result = [{}, {}, {}, {}]
 
-    tzids_list = pytz.common_timezones
-    location_trans = mk_location_trans(tzids_list)
+    defaults = None
+    for loc in ('en',) + LOCALES:
+        for i, r in enumerate(mk_locale_trans(loc, defaults)):
+            r_values = r.values()
+            if r_values and all(r_values):
+                result[i][loc] = r
+                if loc == 'en' and i == 0:
+                    defaults = r
 
-    ter_dict = dict()
-    for (k, i) in six.iteritems(pytz.country_names):
-        if pytz.country_timezones.get(k, None):
-            # make a dictionary entry only if there is at least 1 timezone
-            # in the country
-            ter_dict[k] = i
-    ter_trans = mk_ter_trans(ter_dict)
+    for res, msg, post_msg in zip(
+        result[1:],
+        ('Some translations are missing',
+         'Some translations were overriden by entries in "missing" files',
+         'Some translation overrides are no longer useful'),
+        ('You may want to add them in files in the "missing" directory',
+         None,
+         'You may want to remove them from the "missing" translation files')):
 
-    cit_defaults = mk_py(tzids_list, location_trans, ter_dict, ter_trans)
+        if res:
+            log('')
+            log(msg)
+            for loc, dic in six.iteritems(res):
+                for name, ids in six.iteritems(dic):
+                    if not ids:
+                        continue
+                    if isinstance(ids[0], six.string_types):
+                        to_join = ids
+                    else:
+                        # ids is a list of doubles
+                        to_join = ['"%s" (by "%s")' % x for x in ids]
+                    log('- %s / %s: %s' % (loc, name, ', '.join(to_join)))
+            if post_msg:
+                log(post_msg)
+            log('')
+
+
+    trans = result[0]
+
+    trans_en = trans['en']
+    mk_py(trans_en)
 
     for loc in LOCALES:
-        if loc == 'en':
-            # no need to generate a translation file for english
-            continue
-        po_path = mk_po(loc, tzids_list, cit_defaults, location_trans,
-                        ter_dict, ter_trans)
+        # no need to generate a translation file for english
+        po_path = mk_po(loc, trans_en, trans[loc])
         mk_mo(po_path)
 
     log('Cities and territories names translation completed')

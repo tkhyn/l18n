@@ -35,7 +35,7 @@ def setUp():
         for m in ('l18n.__maps', 'l18n.maps', 'l18n'):
             try:
                 reload(sys.modules[m])
-            except KeyError:
+            except (KeyError, ImportError):
                 pass
         print('Done', file=sys.stderr)
 

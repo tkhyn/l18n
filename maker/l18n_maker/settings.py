@@ -1,11 +1,9 @@
 import os
 
-LOCALES = ('en', 'fr')
+# IMPORTANT: 'en' is the default locale and should not be included in LOCALES
+LOCALES = ('fr',)
 
-CLDR_TZ_CITIES_URL = \
-'http://www.unicode.org/repos/cldr-aux/charts/26/by_type/timezones.timezone_cities.html'
-CLDR_TERRITORIES_URL = \
-'http://www.unicode.org/repos/cldr-aux/charts/26/by_type/locale_display_names.territories.html'
+CLDR_DATA_URL = 'http://www.unicode.org/Public/cldr/latest'
 
 LOCALE_PATH = os.path.join(
     os.sep.join(os.path.dirname(__file__).split(os.sep)[:-2]),

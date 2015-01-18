@@ -3,7 +3,7 @@ import locale
 from pytz import country_timezones
 import six
 
-from .maps import tz_locations
+from .maps import tz_cities
 
 
 def get_country_timezones(country_code):
@@ -15,7 +15,7 @@ def get_country_timezones(country_code):
 
     if country_code in country_timezones:
         tzs = country_timezones[country_code]
-        tz_list = [(t, tz_locations[t]) for t in tzs]
+        tz_list = [(t, tz_cities[t]) for t in tzs]
         tz_list.sort(lambda x, y: locale.strcoll(x[1], y[1]))
 
     return tz_list

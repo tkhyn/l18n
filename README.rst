@@ -46,21 +46,21 @@ Then, in your code::
 
 ``l18n`` exposes several read-only dictionary-like objects:
 
-l18n.tz_locations
+l18n.tz_cities
 
    is a mapping between all the timezones listed in ``pytz.common_timezones``
    to a human-friendly **lazy** version of the translated name of the location
    in the current language (see `Selecting the language`_ below). For example,
    if the language is English::
 
-      >>> l18n.tz_locations['Pacific/Easter']
+      >>> l18n.tz_cities['Pacific/Easter']
       L18NLazyString <Easter Island>
-      >>> str(l18n.tz_locations['Pacific/Easter'])
+      >>> str(l18n.tz_cities['Pacific/Easter'])
       'Easter Island'
 
    In French, it would give::
 
-      >>> str(l18n.tz_locations['Pacific/Easter'])
+      >>> str(l18n.tz_cities['Pacific/Easter'])
       'Île de Pâques'
 
 l18n.territories
@@ -87,10 +87,10 @@ By default, when importing ``l18n``, the current default locale is used (via
 change it, it is rather easy::
 
    >>> l18n.set_language('en')
-   >>> str(l18n.tz_locations['Pacific/Easter'])
+   >>> str(l18n.tz_cities['Pacific/Easter'])
    'Easter Island'
    >>> l18n.set_language('fr')
-   >>> str(l18n.tz_locations['Pacific/Easter'])
+   >>> str(l18n.tz_cities['Pacific/Easter'])
    'Île de Pâques'
 
 And in case you want to go back to the default language::

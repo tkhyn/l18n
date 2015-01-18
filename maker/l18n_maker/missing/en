@@ -1,23 +1,6 @@
-[tz_locations]
+[tz_cities]
 Antarctica/Macquarie=Macquarie Island
-America/Montreal=Montreal
-Asia/Chita=Chita
 Asia/Ho_Chi_Minh=Ho Chi Minh
-Asia/Srednekolymsk=Srednekolymsk
-Canada/Atlantic=Atlantic
-Canada/Central=Central
-Canada/Eastern=Eastern
-Canada/Mountain=Mountain
-Canada/Newfoundland=Newfoundland
-Canada/Pacific=Pacific
 Pacific/Easter=Easter Island
 Pacific/Bougainville=Bougainville Island
-US/Alaska=Alaska
-US/Arizona=Arizona
-US/Central=Central
-US/Eastern=Eastern
-US/Hawaii=Hawaii
-US/Mountain=Mountain
-US/Pacific=Pacific
-UTC=UTC
 GMT=UTC

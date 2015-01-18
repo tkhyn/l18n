@@ -9,7 +9,7 @@ l18n/locale/*
 l18n/__maps.py
 
 # cache directory
-maker/l18n_maker/cache
+maker/l18n_maker/cldr_db
 
 # test backup files
 *.bak
