@@ -16,3 +16,17 @@ US/Eastern=Est
 US/Hawaii=Hawaï
 US/Mountain=Rocheuses
 US/Pacific=Pacifique
+
+[tz_locations]
+Asia = Asie
+America = Amérique
+Africa = Afrique
+Antarctica = Antarctique
+Argentina = Argentine
+Pacific = Pacifique
+Australia = Australie
+Atlantic = Atlantique
+Indian = Indien
+Arctic = Arctique
+US = Etats-Unis
+North_Dakota = Dakota du Nord

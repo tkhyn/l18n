@@ -49,7 +49,7 @@ Then, in your code::
 l18n.tz_cities
 
    is a mapping between all the timezones listed in ``pytz.common_timezones``
-   to a human-friendly **lazy** version of the translated name of the location
+   and human-friendly **lazy** versions of the translated name of the city
    in the current language (see `Selecting the language`_ below). For example,
    if the language is English::
 
@@ -63,20 +63,30 @@ l18n.tz_cities
       >>> str(l18n.tz_cities['Pacific/Easter'])
       'Île de Pâques'
 
+l18n.tz_fullnames
+
+   is a mapping between all the timezones listed in ``pytz.common_timezones``
+   and **lazy** versions of the timezones' full names in the current language.
+   For example::
+
+      >>> str(l18n.tz_fullnames['Pacific/Easter'])
+      'Pacific/Easter Island'  # or 'Pacifique/Île de Pâques' in French
+
 l18n.territories
 
    is a mapping between the territory codes as defined in the CLDR_ and their
    localized names, lazily defined. For example::
 
       >>> str(l18n.territories['CZ'])
-      'Czech Republic'  # or 'République Tchèque' in french
+      'Czech Republic'  # or 'République Tchèque' in French
 
 
 .. note::
 
    The values are translated each time they are evaluated, there is no caching.
-   This means that the same L18NLazyString instance can be used and produce
-   2 different outputs if you change the language between the evaluations.
+   This means that the same L18NLazyString / L18NLazyStringsList instance can
+   be used and produce 2 different outputs if you change the language between
+   the evaluations.
 
 
 Selecting the language

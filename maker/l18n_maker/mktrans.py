@@ -3,6 +3,7 @@ import codecs
 from collections import defaultdict
 from datetime import datetime
 from copy import deepcopy
+import re
 
 import pytz
 import polib
@@ -16,7 +17,7 @@ from .helpers import get_data_dir, log
 
 MISSING_DIR = os.path.join(os.path.dirname(__file__), 'missing')
 
-ITEMS = ('tz_cities', 'territories')
+ITEMS = ('tz_locations', 'tz_cities', 'territories')
 
 missing = defaultdict(lambda: dict([(i, {}) for i in ITEMS]))
 
@@ -72,6 +73,21 @@ def mk_locale_trans(loc, defaults=None):
                 trans_dict[name][key] = trans
 
 
+    ter_required = set(pytz.country_names.keys()) \
+                       .difference(defaults['territories'].keys())
+    for territory in ldml.find('localeDisplayNames').find('territories'):
+        if territory.tag != 'territory' \
+        or territory.get('alt', None) is not None:
+            continue
+        key = territory.get('type')
+        save_trans('territories', key, territory.text)
+        try:
+            ter_required.remove(key)
+        except KeyError:
+            pass
+    missing['territories'].extend(ter_required)
+
+
     tz_required = set(pytz.common_timezones) \
                       .difference(defaults['tz_cities'].keys())
     for zone in ldml.find('dates').find('timeZoneNames'):
@@ -90,34 +106,35 @@ def mk_locale_trans(loc, defaults=None):
             city = key.split('/')[-1]
         else:
             city = ex_city.text
+        city = re.sub(' \[.*\]$', '', city)
         save_trans('tz_cities', key, city)
+
+        for location in set(key.split('/')[:-1]):
+            if location in (trans_dict['tz_locations'].keys() +
+                            missing['tz_locations']):
+                continue
+            if loc == 'en':
+                missing['tz_locations'].append(location)
+            save_trans('tz_locations', location, location)
+
     if loc == 'en':
         # populate missing default translations with raw city names
         for zone in tz_required:
-            city = zone.split('/')[-1]
-            save_trans('tz_cities', zone, city, store_not_missing=False)
+            zone_split = zone.split('/')
+            save_trans('tz_cities', zone, zone_split[-1],
+                       store_not_missing=False)
+
+            for location in set(zone_split[:-1]):
+                if location in (trans_dict['tz_locations'].keys() +
+                                missing['tz_locations']):
+                    continue
+                missing['tz_locations'].append(location)
+                save_trans('tz_locations', location, location)
     else:
         # report missing translations
         missing['tz_cities'].extend(tz_required)
 
-
-    ter_required = set(pytz.country_names.keys()) \
-                       .difference(defaults['territories'].keys())
-    for territory in ldml.find('localeDisplayNames').find('territories'):
-        if territory.tag != 'territory' \
-        or territory.get('alt', None) is not None:
-            continue
-        key = territory.get('type')
-        save_trans('territories', key, territory.text)
-        try:
-            ter_required.remove(key)
-        except KeyError:
-            pass
-    missing['territories'].extend(ter_required)
-
     return trans_dict, missing, not_missing_overrides, not_missing_same
-
-
 
 
 def mk_py(trans):
@@ -205,8 +222,7 @@ def mk_trans():
     defaults = None
     for loc in ('en',) + LOCALES:
         for i, r in enumerate(mk_locale_trans(loc, defaults)):
-            r_values = r.values()
-            if r_values and all(r_values):
+            if any(r.values()):
                 result[i][loc] = r
                 if loc == 'en' and i == 0:
                     defaults = r

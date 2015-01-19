@@ -4,3 +4,21 @@ Asia/Ho_Chi_Minh=Ho Chi Minh
 Pacific/Easter=Easter Island
 Pacific/Bougainville=Bougainville Island
 GMT=UTC
+
+[tz_locations]
+Antarctica = Antarctica
+America = America
+Europe = Europe
+Indian = Indian
+Pacific = Pacific
+Atlantic = Atlantic
+Africa = Africa
+Australia = Australia
+Asia = Asia
+Canada = Canada
+Argentina = Argentina
+Arctic = Arctic
+US = United States
+Indiana = Indiana
+Kentucky = Kentucky
+North_Dakota = North Dakota
