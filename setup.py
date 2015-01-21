@@ -49,6 +49,7 @@ class PredistBuild(object):
 
         while True:
             try:
+                log.info('    - calling "%s"' % ' '.join(cmds[cmd]))
                 if subprocess.Popen(cmds[cmd], stderr=DEVNULL,
                                     stdout=DEVNULL).wait():
                     raise OSError
@@ -64,6 +65,8 @@ class PredistBuild(object):
                         break
                     else:
                         raise RuntimeError('Could not build translation files')
+
+        log.info('translation files built successfully')
 
 cmd_classes = {}
 for cmd in ('sdist', 'bdist_egg', 'bdist_rpm', 'bdist_wininst'):
