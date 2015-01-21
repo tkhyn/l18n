@@ -11,20 +11,29 @@ _trans = None
 
 def set_language(language=None):
     global _trans
-    _trans = gettext.translation(
-        'l18n',
-        os.path.join(os.path.dirname(__file__), 'locale'),
-        languages=[language or getdefaultlocale()[0]],
-        fallback=True
-    )
-set_language()
+    if language:
+        _trans = gettext.translation(
+            'l18n',
+            os.path.join(os.path.dirname(__file__), 'locale'),
+            languages=[language],
+            fallback=True
+        )
+    else:
+        _trans = None
+set_language(getdefaultlocale()[0])
 
 if six.PY2:
     def translate(s):
-        return _trans.ugettext(s)
+        if _trans:
+            return _trans.ugettext(s)
+        else:
+            return s
 else:
     def translate(s):
-        return _trans.gettext(s)
+        if _trans:
+            return _trans.gettext(s)
+        else:
+            return s
 
 
 class L18NLazyString(object):

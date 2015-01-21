@@ -103,7 +103,7 @@ change it, it is rather easy::
    >>> str(l18n.tz_cities['Pacific/Easter'])
    'Île de Pâques'
 
-And in case you want to go back to the default language::
+And in case you want to disable translation and use raw default strings::
 
    >>> l18n.set_language(None)
 
