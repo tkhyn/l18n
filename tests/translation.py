@@ -49,10 +49,10 @@ class FrTests(TestCase):
 class DictBehaviorTests(TestCase):
 
     def test_get(self):
-        self.assertEqual(
-            str(l18n.tz_fullnames.get('Canada/Newfoundland')),
-            u'Canada/Newfoundland'
-        )
+        for k in l18n.tz_cities:
+            self.assertEqual(
+                str(l18n.tz_fullnames.get(k)), str(l18n.tz_fullnames[k])
+            )
 
     def test_items(self):
         items = l18n.tz_fullnames.items()
