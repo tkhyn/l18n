@@ -54,9 +54,9 @@ def mk_locale_trans(loc, defaults=None):
     not_missing_same = defaultdict(lambda: [])
 
 
-    def save_trans(name, key, trans, store_not_missing=True):
+    def save_trans(name, key, trans):
         cur_trans = trans_dict[name].get(key, None)
-        if cur_trans and store_not_missing:
+        if cur_trans:
             # a translation is already defined
             if cur_trans == trans:
                 not_missing_same[name].append(key)
@@ -127,8 +127,7 @@ def mk_locale_trans(loc, defaults=None):
         # populate missing default translations with raw city names
         for zone in tz_required:
             zone_split = zone.split('/')
-            save_trans('tz_cities', zone, zone_split[-1].replace('_', ' '),
-                       store_not_missing=False)
+            save_trans('tz_cities', zone, zone_split[-1].replace('_', ' '))
 
             for location in set(zone_split[:-1]):
                 if location in (trans_dict['tz_locations'].keys() +

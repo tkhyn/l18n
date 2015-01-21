@@ -13,6 +13,10 @@ class RootTests(TestCase):
         self.assertEqual(str(l18n.tz_cities['Canada/Newfoundland']),
                          u'Newfoundland')
 
+    def test_tz_city_override(self):
+        self.assertEqual(str(l18n.tz_cities['Pacific/Easter']),
+                         u'Easter Island')
+
     def test_tz_fullname_translated(self):
         self.assertEqual(
             str(l18n.tz_fullnames['America/North_Dakota/New_Salem']),
