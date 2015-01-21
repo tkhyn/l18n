@@ -35,8 +35,8 @@ Calling ``build`` does 3 things:
 
 - it fetches the relevant pages from the CLDR_ website and extracts the needed
   translations
-- it retrieves missing translations from locale files in the ``missing``
-  directory
+- it retrieves missing or more precise translations from locale files in the
+  ``overrides`` directory
 - it generates the translation files and the ``__maps`` module.
 
 After the build, a distribution can be created and uploaded to pypi_.
@@ -51,20 +51,20 @@ website, simply add the language to ``l18n_maker.settings.LOCALES`` tuple.
 I told you it was simple ...
 
 
-Step 2: adding a missing translations file
-..........................................
+Step 2: adding a translations overrides file
+............................................
 
 The timezones for which no translation can be found in the CLDR are listed in
-the file ``missing/root``. This file provides the mappings for fallback
+the file ``overrides/root``. This file provides the mappings for fallback
 translations. Some of the entries may not change in your language, some are
 likely to be different.
 
 You need to:
 
-- copy ``missing/root`` to ``missing/your_language``
-- remove each line of ``missing/your_language`` for which the name in your
+- copy ``overrides/root`` to ``overrides/your_language``
+- remove each line of ``overrides/your_language`` for which the name in your
   language is the same compared to the fallback one
-- edit each line of ``missing/your_language`` for which the name in your
+- edit each line of ``overrides/your_language`` for which the name in your
   language is different from the fallback one. It may require a few Google
   searches!
 
@@ -85,8 +85,8 @@ You can have a look at the output, which will notify you if:
 
 - A translation was not found for a timezone or territory: this is an issue
   that must be reported and fixed asap.
-- A translation was found both in the CLDR and in a ``missing/*`` file: this is
-  normal in case a CLDR translation was not satisfying (e.g for the
+- A translation was found both in the CLDR and in a ``overrides/*`` file: this
+  is normal in case a CLDR translation was not satisfying (e.g for the
   'Pacific/Easter' timezone that is translated to 'Easter' while it should be
   'Easter Island') and needed to be overriden.
 
@@ -98,7 +98,7 @@ You may want to open the generated ``locale/your_language/LC_MESSAGES/l18n.po``
 with an editor such as poedit_ to check that the translations have been
 correctly generated. You may also spot some incorrect / imprecise translations
 (e.g like 'Easter Island' mentionned above). In that case, you can override
-the CLDR translation by providing an entry in the ``missing/your_language``
+the CLDR translation by providing an entry in the ``overrides/your_language``
 file.
 
 
@@ -106,7 +106,7 @@ Step 6: Add your name to the contributors list
 ..............................................
 
 So that you can easily be contacted when there is a line to add to
-``missing/your_language``, for example when pytz is updated. Just add the
+``overrides/your_language``, for example when pytz is updated. Just add the
 language and a way to contact you.
 
 

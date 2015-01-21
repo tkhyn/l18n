@@ -15,22 +15,22 @@ from .settings import LOCALES, PO_PATH, PY_PATH
 from .helpers import get_data_dir, log
 
 
-MISSING_DIR = os.path.join(os.path.dirname(__file__), 'missing')
+OVERRIDES_DIR = os.path.join(os.path.dirname(__file__), 'overrides')
 
 ITEMS = ('tz_locations', 'tz_cities', 'territories')
 
-missing = defaultdict(lambda: dict([(i, {}) for i in ITEMS]))
+overrides = defaultdict(lambda: dict([(i, {}) for i in ITEMS]))
 
 
-def mk_missing():
+def mk_overrides():
 
-    if any(missing.values()):
-        return missing
+    if any(overrides.values()):
+        return overrides
 
-    for locfile in os.listdir(MISSING_DIR):
+    for locfile in os.listdir(OVERRIDES_DIR):
 
         tr = configparser.ConfigParser()
-        tr.readfp(codecs.open(os.path.join(MISSING_DIR, locfile), 'r', 'utf8'))
+        tr.readfp(codecs.open(os.path.join(OVERRIDES_DIR, locfile), 'r', 'utf8'))
 
         for i in ITEMS:
             try:
@@ -38,9 +38,9 @@ def mk_missing():
             except configparser.NoSectionError:
                 continue
             for item, value in items:
-                missing[locfile][i][item] = value
+                overrides[locfile][i][item] = value
 
-    return missing
+    return overrides
 
 
 def mk_locale_trans(loc, defaults=None):
@@ -48,7 +48,7 @@ def mk_locale_trans(loc, defaults=None):
     if defaults is None:
         defaults = defaultdict(lambda: {})
 
-    trans_dict = deepcopy(mk_missing()[loc])
+    trans_dict = deepcopy(mk_overrides()[loc])
     missing = defaultdict(lambda: [])
     not_missing_overrides = defaultdict(lambda: [])
     not_missing_same = defaultdict(lambda: [])
@@ -221,8 +221,8 @@ def mk_trans():
 
     log('Starting cities and territories names translation')
 
-    # translations, missing, overriden in 'missing' folder, same value in
-    # missing folder
+    # translations, missing, overriden in 'overrides' folder, same value in
+    # overrides folder
     result = [{}, {}, {}, {}]
 
     defaults = None
@@ -236,11 +236,11 @@ def mk_trans():
     for res, msg, post_msg in zip(
         result[1:],
         ('Some translations are missing',
-         'Some translations were overriden by entries in "missing" files',
+         'Some translations were overridden by entries overrides/*',
          'Some translation overrides are no longer useful'),
-        ('You may want to add them in files in the "missing" directory',
+        ('You may want to add them in overrides/* files',
          None,
-         'You may want to remove them from the "missing" translation files')):
+         'You may want to remove them from the overrides/* files')):
 
         if res:
             log('')
