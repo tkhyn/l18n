@@ -1,6 +1,7 @@
 import os
 import gettext
 from locale import getdefaultlocale
+from collections import MutableMapping
 
 import six
 
@@ -69,22 +70,46 @@ class L18NLazyStringsList(object):
         return getattr(self._value(), name)
 
 
-class L18NDict(dict):
+class L18NBaseMap(MutableMapping):
+    """
+    Generic dictionary that returns lazy string or lazy string lists
+    """
+
+    def __init__(self, *args, **kwargs):
+        self.store = dict(*args, **kwargs)
 
     def __getitem__(self, key):
-        return L18NLazyString(super(L18NDict, self).__getitem__(key))
+        raise NotImplementedError
+
+    def _raise_readonly(self):
+        raise RuntimeError('l18n maps are read-only')
+
+    def __setitem__(self, key, value):
+        self._raise_readonly()
+
+    def __delitem__(self, key):
+        self._raise_readonly()
+
+    def __iter__(self):
+        return iter(self.store)
+
+    def __len__(self):
+        return len(self.store)
 
 
-class L18NListDict(dict):
+class L18NMap(L18NBaseMap):
+
+    def __getitem__(self, key):
+        return L18NLazyString(self.store[key])
+
+
+class L18NListMap(L18NBaseMap):
 
     def __init__(self, sep='/', *args, **kwargs):
         self._sep = sep
-        super(L18NListDict, self).__init__(*args, **kwargs)
+        super(L18NListMap, self).__init__(*args, **kwargs)
 
     def __getitem__(self, key):
         strs = key.split(self._sep)
         strs[-1] = key
-        return L18NLazyStringsList(
-            self._sep,
-            *[super(L18NListDict, self).__getitem__(s) for s in strs]
-        )
+        return L18NLazyStringsList(self._sep, *[self.store[s] for s in strs])

@@ -5,7 +5,24 @@ import l18n
 from ._base import TestCase
 
 
-class TranslationTestCase(TestCase):
+class EnTests(TestCase):
+
+    def test_tz_city_translated(self):
+        self.assertEqual(str(l18n.tz_cities['Canada/Newfoundland']),
+                         u'Newfoundland')
+
+    def test_tz_fullname_translated(self):
+        self.assertEqual(
+            str(l18n.tz_fullnames['Canada/Newfoundland']),
+            u'Canada/Newfoundland'
+        )
+
+    def test_territory_translated(self):
+        self.assertEqual(str(l18n.territories['ES']), u'Spain')
+
+
+
+class FrTests(TestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -27,3 +44,17 @@ class TranslationTestCase(TestCase):
 
     def test_territory_translated(self):
         self.assertEqual(str(l18n.territories['ES']), u'Espagne')
+
+
+class DictBehaviorTests(TestCase):
+
+    def test_get(self):
+        self.assertEqual(
+            str(l18n.tz_fullnames.get('Canada/Newfoundland')),
+            u'Canada/Newfoundland'
+        )
+
+    def test_items(self):
+        items = l18n.tz_fullnames.items()
+        for i, v in items:
+            self.assertEqual(str(v), str(l18n.tz_fullnames[i]))
