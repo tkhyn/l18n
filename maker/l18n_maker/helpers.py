@@ -2,10 +2,10 @@ from __future__ import print_function
 
 import os
 import zipfile
-import StringIO
 
 import requests
 
+from .compat import StringIO
 from .settings import CLDR_DATA_URL
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), 'cldr_db')

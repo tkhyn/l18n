@@ -4,6 +4,7 @@ from collections import defaultdict
 from datetime import datetime
 from copy import deepcopy
 import re
+from itertools import chain
 
 import pytz
 import polib
@@ -116,8 +117,8 @@ def mk_locale_trans(loc, defaults=None):
         save_trans('tz_cities', key, city)
 
         for location in set(key.split('/')[:-1]):
-            if location in (trans_dict['tz_locations'].keys() +
-                            missing['tz_locations']):
+            if location in chain(trans_dict['tz_locations'].keys(),
+                                 missing['tz_locations']):
                 continue
             if loc == 'root':
                 missing['tz_locations'].append(location)
@@ -130,8 +131,8 @@ def mk_locale_trans(loc, defaults=None):
             save_trans('tz_cities', zone, zone_split[-1].replace('_', ' '))
 
             for location in set(zone_split[:-1]):
-                if location in (trans_dict['tz_locations'].keys() +
-                                missing['tz_locations']):
+                if location in chain(trans_dict['tz_locations'].keys(),
+                                     missing['tz_locations']):
                     continue
                 missing['tz_locations'].append(location)
                 save_trans('tz_locations', location,
