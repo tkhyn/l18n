@@ -1,7 +1,6 @@
 import os
 
-# IMPORTANT: 'en' is the default locale and should not be included in LOCALES
-LOCALES = ('fr',)
+LOCALES = ('en', 'fr',)
 
 CLDR_DATA_URL = 'http://www.unicode.org/Public/cldr/latest'
 

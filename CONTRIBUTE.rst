@@ -55,17 +55,17 @@ Step 2: adding a missing translations file
 ..........................................
 
 The timezones for which no translation can be found in the CLDR are listed in
-the file ``missing/en``. This file provides the mappings for the English
-language. Some of the entries may not change in your language, some are likely
-to be different.
+the file ``missing/root``. This file provides the mappings for fallback
+translations. Some of the entries may not change in your language, some are
+likely to be different.
 
 You need to:
 
-- copy ``missing/en`` to ``missing/your_language``
+- copy ``missing/root`` to ``missing/your_language``
 - remove each line of ``missing/your_language`` for which the name in your
-  language is the same compared to the English one
+  language is the same compared to the fallback one
 - edit each line of ``missing/your_language`` for which the name in your
-  language is different from the English one. It may require a few Google
+  language is different from the fallback one. It may require a few Google
   searches!
 
 You can have a look at the existing files for examples in other languages.

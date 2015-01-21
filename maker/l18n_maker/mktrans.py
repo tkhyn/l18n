@@ -46,11 +46,7 @@ def mk_missing():
 def mk_locale_trans(loc, defaults=None):
 
     if defaults is None:
-        assert loc == 'en', 'defaults cannot be None unless locale is "en"'
         defaults = defaultdict(lambda: {})
-
-    ldml = ET.parse(os.path.join(get_data_dir(), 'main',
-                                 '%s.xml' % loc)).getroot()
 
     trans_dict = deepcopy(mk_missing()[loc])
     missing = defaultdict(lambda: [])
@@ -72,6 +68,10 @@ def mk_locale_trans(loc, defaults=None):
             if trans != defaults[name].get(key, None):
                 trans_dict[name][key] = trans
 
+    # there are no territories defined in root.xml, so the default ones should
+    # be extracted from en.xml
+    ldml = ET.parse(os.path.join(get_data_dir(), 'main', '%s.xml'
+                                 % ('en' if loc == 'root' else loc))).getroot()
 
     ter_required = set(pytz.country_names.keys()) \
                        .difference(defaults['territories'].keys())
@@ -87,6 +87,11 @@ def mk_locale_trans(loc, defaults=None):
             pass
     missing['territories'].extend(ter_required)
 
+
+    if loc == 'root':
+        # back to root.xml for timezones
+        ldml = ET.parse(os.path.join(get_data_dir(), 'main',
+                                     'root.xml')).getroot()
 
     tz_required = set(pytz.common_timezones) \
                       .difference(defaults['tz_cities'].keys())
@@ -106,18 +111,18 @@ def mk_locale_trans(loc, defaults=None):
             city = key.split('/')[-1]
         else:
             city = ex_city.text
-        city = re.sub(' \[.*\]$', '', city)
+        city = re.sub('(?:, .*| \[.*\])$', '', city)
         save_trans('tz_cities', key, city)
 
         for location in set(key.split('/')[:-1]):
             if location in (trans_dict['tz_locations'].keys() +
                             missing['tz_locations']):
                 continue
-            if loc == 'en':
+            if loc == 'root':
                 missing['tz_locations'].append(location)
-            save_trans('tz_locations', location, location)
+            save_trans('tz_locations', location, location.replace('_', ' '))
 
-    if loc == 'en':
+    if loc == 'root':
         # populate missing default translations with raw city names
         for zone in tz_required:
             zone_split = zone.split('/')
@@ -129,7 +134,8 @@ def mk_locale_trans(loc, defaults=None):
                                 missing['tz_locations']):
                     continue
                 missing['tz_locations'].append(location)
-                save_trans('tz_locations', location, location)
+                save_trans('tz_locations', location,
+                           location.replace('_', ' '))
     else:
         # report missing translations
         missing['tz_cities'].extend(tz_required)
@@ -220,11 +226,11 @@ def mk_trans():
     result = [{}, {}, {}, {}]
 
     defaults = None
-    for loc in ('en',) + LOCALES:
+    for loc in ('root',) + LOCALES:
         for i, r in enumerate(mk_locale_trans(loc, defaults)):
             if any(r.values()):
                 result[i][loc] = r
-                if loc == 'en' and i == 0:
+                if loc == 'root' and i == 0:
                     defaults = r
 
     for res, msg, post_msg in zip(
@@ -256,12 +262,11 @@ def mk_trans():
 
     trans = result[0]
 
-    trans_en = trans['en']
-    mk_py(trans_en)
+    trans_root = trans['root']
+    mk_py(trans_root)
 
     for loc in LOCALES:
-        # no need to generate a translation file for english
-        po_path = mk_po(loc, trans_en, trans[loc])
+        po_path = mk_po(loc, trans_root, trans[loc])
         mk_mo(po_path)
 
     log('Cities and territories names translation completed')
