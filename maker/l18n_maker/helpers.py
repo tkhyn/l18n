@@ -28,7 +28,7 @@ def get_data_dir():
 
     if os.path.exists(data_dir):
         if not _get_data_dir_called:
-            log('> Loading data from cached data (%s)' % data_dir)
+            log('> Loading data from cached database (%s)' % data_dir)
     else:
         try:
             os.makedirs(data_dir)

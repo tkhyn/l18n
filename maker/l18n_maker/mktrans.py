@@ -108,10 +108,11 @@ def mk_locale_trans(loc, defaults=None):
 
         ex_city = zone.find('exemplarCity')
         if ex_city is None:
-            city = key.split('/')[-1]
+            city = key.split('/')[-1].replace('_', ' ')
         else:
-            city = ex_city.text
-        city = re.sub('(?:, .*| \[.*\])$', '', city)
+            # stripping territory name in cases like 'city [territory]' or
+            # 'city, territory'
+            city = re.sub('(?:, .*| \[.*\])$', '', ex_city.text)
         save_trans('tz_cities', key, city)
 
         for location in set(key.split('/')[:-1]):
@@ -126,7 +127,7 @@ def mk_locale_trans(loc, defaults=None):
         # populate missing default translations with raw city names
         for zone in tz_required:
             zone_split = zone.split('/')
-            save_trans('tz_cities', zone, zone_split[-1],
+            save_trans('tz_cities', zone, zone_split[-1].replace('_', ' '),
                        store_not_missing=False)
 
             for location in set(zone_split[:-1]):
