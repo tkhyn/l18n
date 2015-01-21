@@ -45,4 +45,4 @@ def get_data_dir():
 
 
 def log(msg):
-    print(msg)
+    print(msg.encode('utf-8'))
