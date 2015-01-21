@@ -38,10 +38,9 @@ def setUp():
             except (KeyError, ImportError):
                 pass
         print('Done', file=sys.stderr)
-
-    except Exception as e:
+    except:
         tearDown()
-        raise e
+        raise
 
 
 def tearDown():
