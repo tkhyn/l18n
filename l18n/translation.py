@@ -90,14 +90,11 @@ class L18NBaseMap(MutableMapping):
     def __getitem__(self, key):
         raise NotImplementedError
 
-    def _raise_readonly(self):
-        raise RuntimeError('l18n maps are read-only')
-
     def __setitem__(self, key, value):
-        self._raise_readonly()
+        self.store[key] = value
 
     def __delitem__(self, key):
-        self._raise_readonly()
+        del self.store[key]
 
     def __iter__(self):
         return iter(self.store)
