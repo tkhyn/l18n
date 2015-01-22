@@ -17,3 +17,7 @@ class DictBehaviorTests(TestCase):
         items = l18n.tz_fullnames.items()
         for i, v in items:
             self.assertEqual(unicode(v), unicode(l18n.tz_fullnames[i]))
+
+    def test_locations_and_cities_keys(self):
+        self.assertEqual(set(l18n.tz_cities.keys()),
+                         set(l18n.tz_fullnames.keys()))

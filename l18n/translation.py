@@ -114,11 +114,18 @@ class L18NMap(L18NBaseMap):
 
 class L18NListMap(L18NBaseMap):
 
-    def __init__(self, sep='/', *args, **kwargs):
+    def __init__(self, sep, aux=None, *args, **kwargs):
         self._sep = sep
+        self._aux = aux
         super(L18NListMap, self).__init__(*args, **kwargs)
 
     def __getitem__(self, key):
         strs = key.split(self._sep)
         strs[-1] = key
-        return L18NLazyStringsList(self._sep, *[self.store[s] for s in strs])
+        lst = []
+        for s in strs:
+            try:
+                lst.append(self.store[s])
+            except KeyError:
+                lst.append(self._aux[s])
+        return L18NLazyStringsList(self._sep, *lst)
