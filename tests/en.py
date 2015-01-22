@@ -11,8 +11,10 @@ class RootTests(TestCase):
     language = None
 
     def test_tz_city_translated(self):
-        self.assertEqual(unicode(l18n.tz_cities['Canada/Newfoundland']),
-                         u'Newfoundland')
+        self.assertEqual(
+            unicode(l18n.tz_cities['America/North_Dakota/New_Salem']),
+            u'New Salem, North Dakota'
+        )
 
     def test_tz_city_override(self):
         self.assertEqual(unicode(l18n.tz_cities['Pacific/Easter']),
@@ -33,8 +35,10 @@ class EnTests(TestCase):
     language = 'en'
 
     def test_tz_city_translated(self):
-        self.assertEqual(unicode(l18n.tz_cities['Canada/Newfoundland']),
-                         u'Newfoundland')
+        self.assertEqual(
+            unicode(l18n.tz_cities['America/North_Dakota/New_Salem']),
+            u'New Salem, North Dakota'
+        )
 
     def test_tz_fullname_translated(self):
         self.assertEqual(

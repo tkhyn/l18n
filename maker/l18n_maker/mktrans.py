@@ -109,20 +109,29 @@ def mk_locale_trans(loc, defaults=None):
 
         ex_city = zone.find('exemplarCity')
         if ex_city is None:
-            city = key.split('/')[-1].replace('_', ' ')
+            city = city_location = key.split('/')[-1].replace('_', ' ')
         else:
-            # stripping territory name in cases like 'city [territory]' or
-            # 'city, territory'
-            city = re.sub('(?:, .*| \[.*\])$', '', ex_city.text)
+            # stripping territory name from city_location in cases like
+            # 'city [territory]' or 'city, territory'
+            city = ex_city.text
+            city_location = re.sub('(?:, .*| \[.*\])$', '', city)
         save_trans('tz_cities', key, city)
 
+        def save_location(loc_key, value):
+            if loc_key in chain(trans_dict['tz_locations'].keys(),
+                                missing['tz_locations']):
+                return
+            if loc == 'root' and loc_key != key:
+                missing['tz_locations'].append(loc_key)
+            save_trans('tz_locations', loc_key, value)
+
         for location in set(key.split('/')[:-1]):
-            if location in chain(trans_dict['tz_locations'].keys(),
-                                 missing['tz_locations']):
-                continue
-            if loc == 'root':
-                missing['tz_locations'].append(location)
-            save_trans('tz_locations', location, location.replace('_', ' '))
+            save_location(location, location.replace('_', ' '))
+
+        if city != city_location:
+            # saving under the same key as in the tz_cities dict, so that
+            # city_location overrides city when building tz_fullnames dict
+            save_location(key, city_location)
 
     if loc == 'root':
         # populate missing default translations with raw city names
@@ -144,7 +153,7 @@ def mk_locale_trans(loc, defaults=None):
     return trans_dict, missing, not_missing_overrides, not_missing_same
 
 
-def mk_py(trans):
+def mk_py(names):
     """
     Generate .py file with a dict of default (english) values
     """
@@ -157,7 +166,7 @@ def mk_py(trans):
 
     def write(name):
         py_file.write('\n\n%s = {\n' % name)
-        for k, v in six.iteritems(trans[name]):
+        for k, v in six.iteritems(names[name]):
             py_file.write(u"    '%s': u'%s',\n" % (k, v.replace(u"'", u"\\'")))
         py_file.write('}')
 
@@ -168,7 +177,7 @@ def mk_py(trans):
     py_file.close()
 
 
-def mk_po(loc, trans_en, trans):
+def mk_po(loc, root_names, trans):
     """
     Generate a .po file for locale loc
     """
@@ -204,7 +213,17 @@ msgstr ""
 
     def write(name):
         for k, v in six.iteritems(trans[name]):
-            po_file.write(u'msgid "' + trans_en[name][k] + \
+            try:
+                root_name = root_names[name][k]
+            except KeyError:
+                # this can happen if we're looking at tz locations and a
+                # translation is defined while there is no entry in the root
+                # In that case we need to fall back to tz_cities
+                if name == 'tz_locations':
+                    root_name = root_names['tz_cities'][k]
+                else:
+                    raise
+            po_file.write(u'msgid "' + root_name + \
                           u'"\nmsgstr "' + v + u'"\n\n')
 
     for name in ITEMS:
@@ -263,11 +282,11 @@ def mk_trans():
 
     trans = result[0]
 
-    trans_root = trans['root']
-    mk_py(trans_root)
+    root_names = trans['root']
+    mk_py(root_names)
 
     for loc in LOCALES:
-        po_path = mk_po(loc, trans_root, trans[loc])
+        po_path = mk_po(loc, root_names, trans[loc])
         mk_mo(po_path)
 
     log('Cities and territories names translation completed')

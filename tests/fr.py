@@ -11,8 +11,10 @@ class FrTests(TestCase):
     language = 'fr'
 
     def test_tz_city_translated(self):
-        self.assertEqual(unicode(l18n.tz_cities['Canada/Newfoundland']),
-                         u'Terre-Neuve')
+        self.assertEqual(
+            unicode(l18n.tz_cities['America/North_Dakota/New_Salem']),
+            u'New Salem [Dakota du Nord]'
+        )
 
     def test_tz_fullname_translated(self):
         self.assertEqual(

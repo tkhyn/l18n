@@ -72,6 +72,18 @@ l18n.tz_fullnames
       >>> str(l18n.tz_fullnames['Pacific/Easter'])
       'Pacific/Easter Island'  # or 'Pacifique/Île de Pâques' in French
 
+   It is interesting to note that for 3-components timezone names where the
+   local state or territory appears in the city name, ``l18n`` cleverly strips
+   this information so that it is not repeated::
+
+      >>> str(l18n.tz_fullnames['America/North_Dakota/New_Salem'])
+      'America/North Dakota/New Salem'
+
+   indeed::
+
+      >>> str(l18n.tz_cities['America/North_Dakota/New_salem'])
+      'New Salem, North Dakota'
+
 l18n.territories
 
    is a mapping between the territory codes as defined in the CLDR_ and their
