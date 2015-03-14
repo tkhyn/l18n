@@ -144,6 +144,8 @@ X. Indeed, the primary aim is to keep ``l18n`` consistent with ``pytz``'s
 updates.
 
 
+.. _`want to add yours?`:
+
 Want to add a language?
 -----------------------
 
@@ -160,7 +162,6 @@ Roadmap
 
 .. |copyright| unicode:: 0xA9
 
-.. _`want to add yours?`: `Want to add a language?`
 .. _pytz: https://pypi.python.org/pypi/pytz/
 .. _CLDR: http://cldr.unicode.org/
 .. _CONTRIBUTE.rst: https://bitbucket.org/tkhyn/l18n/src/tip/CONTRIBUTE.rst
