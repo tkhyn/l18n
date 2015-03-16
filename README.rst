@@ -101,6 +101,13 @@ l18n.territories
    the evaluations.
 
 
+.. note::
+
+   The values in the above mentionned dictionaries can be overriden by your
+   own translations. The dictionaries are not read-only and values can be
+   added or removed at your convenience.
+
+
 Selecting the language
 ----------------------
 
@@ -156,7 +163,6 @@ Roadmap
 -------
 
 - Add supported languages
-- Use an HTML parser instead of plain text lookups for data extraction
 - Add currencies and other stuff
 
 
