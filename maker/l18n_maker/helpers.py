@@ -5,7 +5,7 @@ import zipfile
 
 import requests
 
-from .compat import StringIO
+from six import StringIO
 from .settings import CLDR_DATA_URL
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), 'cldr_db')
@@ -36,7 +36,7 @@ def get_data_dir():
             pass  # DATA_DIR exists
         log('> Downloading CLDR database version %s' % version)
         request = requests.get(CLDR_DATA_URL + '/core.zip')
-        z = zipfile.ZipFile(StringIO.StringIO(request.content))
+        z = zipfile.ZipFile(StringIO(request.content))
         log('> Extracting CLDR database to %s' % data_dir)
         z.extractall(data_dir)
 
