@@ -31,7 +31,8 @@ def mk_overrides():
     for locfile in os.listdir(OVERRIDES_DIR):
 
         tr = configparser.ConfigParser()
-        tr.readfp(codecs.open(os.path.join(OVERRIDES_DIR, locfile), 'r', 'utf8'))
+        tr.readfp(codecs.open(os.path.join(OVERRIDES_DIR, locfile),
+                              'r', 'utf8'))
 
         for i in ITEMS:
             try:
@@ -47,35 +48,34 @@ def mk_overrides():
 def mk_locale_trans(loc, defaults=None):
 
     if defaults is None:
-        defaults = defaultdict(lambda: {})
+        defaults = defaultdict(dict)
 
     trans_dict = deepcopy(mk_overrides()[loc])
     missing = defaultdict(lambda: [])
     not_missing_overrides = defaultdict(lambda: [])
     not_missing_same = defaultdict(lambda: [])
 
-
-    def save_trans(name, key, trans):
-        cur_trans = trans_dict[name].get(key, None)
+    def save_trans(name, k, trans):
+        cur_trans = trans_dict[name].get(k, None)
         if cur_trans:
             # a translation is already defined
             if cur_trans == trans:
-                not_missing_same[name].append(key)
+                not_missing_same[name].append(k)
             else:
                 not_missing_overrides[name].append((trans, cur_trans))
         else:
             # no existing translation is defined, save it if different than
             # default value
-            if trans != defaults[name].get(key, None):
-                trans_dict[name][key] = trans
+            if trans != defaults[name].get(k, None):
+                trans_dict[name][k] = trans
 
     # there are no territories defined in root.xml, so the default ones should
     # be extracted from en.xml
     ldml = ET.parse(os.path.join(get_data_dir(), 'main', '%s.xml'
                                  % ('en' if loc == 'root' else loc))).getroot()
 
-    ter_required = set(pytz.country_names.keys()) \
-                       .difference(defaults['territories'].keys())
+    ter_required = set(pytz.country_names.keys()).difference(
+        defaults['territories'].keys())
     for territory in ldml.find('localeDisplayNames').find('territories'):
         if territory.tag != 'territory' \
         or territory.get('alt', None) is not None:
@@ -88,14 +88,13 @@ def mk_locale_trans(loc, defaults=None):
             pass
     missing['territories'].extend(ter_required)
 
-
     if loc == 'root':
         # back to root.xml for timezones
         ldml = ET.parse(os.path.join(get_data_dir(), 'main',
                                      'root.xml')).getroot()
 
-    tz_required = set(pytz.common_timezones) \
-                      .difference(defaults['tz_cities'].keys())
+    tz_required = set(pytz.common_timezones).difference(
+        defaults['tz_cities'].keys())
     for zone in ldml.find('dates').find('timeZoneNames'):
         if zone.tag != 'zone':
             continue
@@ -164,9 +163,9 @@ def mk_py(names):
     py_file.write('# -*- coding: utf-8 -*-\n\n'
                   '# AUTOMATICALLY GENERATED FILE, DO NOT EDIT')
 
-    def write(name):
-        py_file.write('\n\n%s = {\n' % name)
-        for k, v in six.iteritems(names[name]):
+    def write(key):
+        py_file.write('\n\n%s = {\n' % key)
+        for k, v in six.iteritems(names[key]):
             py_file.write(u"    '%s': u'%s',\n" % (k, v.replace(u"'", u"\\'")))
         py_file.write('}')
 
@@ -211,20 +210,19 @@ msgstr ""
     po_file = codecs.open(po_path, 'w', ' utf8')
     po_file.write(header + loc + u'\\n"\n\n')
 
-    def write(name):
-        for k, v in six.iteritems(trans[name]):
+    def write(key):
+        for k, v in six.iteritems(trans[key]):
             try:
-                root_name = root_names[name][k]
+                root_name = root_names[key][k]
             except KeyError:
                 # this can happen if we're looking at tz locations and a
                 # translation is defined while there is no entry in the root
                 # In that case we need to fall back to tz_cities
-                if name == 'tz_locations':
+                if key == 'tz_locations':
                     root_name = root_names['tz_cities'][k]
                 else:
                     raise
-            po_file.write(u'msgid "' + root_name + \
-                          u'"\nmsgstr "' + v + u'"\n\n')
+            po_file.write(u'msgid "%s"\nmsgstr "%s"\n\n' % (root_name, v))
 
     for name in ITEMS:
         write(name)
@@ -278,7 +276,6 @@ def mk_trans():
             if post_msg:
                 log(post_msg)
             log('')
-
 
     trans = result[0]
 
