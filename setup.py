@@ -112,4 +112,5 @@ setup(
     install_requires=('pytz==%d.%d' % __version_info__[:2],),
     cmdclass=cmd_classes,
     zip_safe=False,
+    include_package_data=True,
 )
