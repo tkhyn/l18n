@@ -5,6 +5,7 @@ l18n - changes
 v2015.2.1 (dev)
 ---------------
 
+- German translations
 - New languages ?
 
 
