@@ -51,9 +51,16 @@ def mk_locale_trans(loc, defaults=None):
         defaults = defaultdict(dict)
 
     trans_dict = deepcopy(mk_overrides()[loc])
-    missing = defaultdict(lambda: [])
-    not_missing_overrides = defaultdict(lambda: [])
-    not_missing_same = defaultdict(lambda: [])
+    missing = defaultdict(list)
+    not_missing_overrides = defaultdict(list)
+    not_missing_same = defaultdict(list)
+    no_longer_in_pytz = {
+        'tz_cities': list(set(trans_dict['tz_cities'].keys())
+                          .difference(pytz.common_timezones))
+    }
+
+    for tz in no_longer_in_pytz['tz_cities']:
+        trans_dict['tz_cities'].pop(tz)
 
     def save_trans(name, k, trans):
         cur_trans = trans_dict[name].get(k, None)
@@ -149,7 +156,8 @@ def mk_locale_trans(loc, defaults=None):
         # report missing translations
         missing['tz_cities'].extend(tz_required)
 
-    return trans_dict, missing, not_missing_overrides, not_missing_same
+    return trans_dict, missing, not_missing_overrides, not_missing_same, \
+           no_longer_in_pytz
 
 
 def mk_py(names):
@@ -240,8 +248,8 @@ def mk_trans():
     log('Starting cities and territories names translation')
 
     # translations, missing, overriden in 'overrides' folder, same value in
-    # overrides folder
-    result = [{}, {}, {}, {}]
+    # overrides folder, no longer in pytz database
+    result = [{}, {}, {}, {}, {}]
 
     defaults = None
     for loc in ('root',) + LOCALES:
@@ -255,10 +263,13 @@ def mk_trans():
         result[1:],
         ('Some translations are missing',
          'Some translations were overridden by entries overrides/*',
-         'Some translation overrides are no longer useful'),
+         'Some translation overrides are no longer useful as they match the '
+         'CLDR translation',
+         'Some translation overrides are no longer in pytz.common_timezones'),
         ('You may want to add them in overrides/* files',
          None,
-         'You may want to remove them from the overrides/* files')):
+         'You may want to remove them from the overrides/* files',
+         'You should remove them from the overrides/* files')):
 
         if res:
             log('')
