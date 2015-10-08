@@ -1,0 +1,21 @@
+[tz_cities]
+Antarctica/Macquarie = Macquarieinsel
+Pacific/Bougainville = Bougainville
+
+[tz_locations]
+Antarctica = Antarktis
+America = Amerika
+Europe = Europa
+Indian = Indien
+Pacific = Pazifik
+Atlantic = Atlantik
+Africa = Afrika
+Australia = Australien
+Asia = Asien
+Canada = Kanada
+Argentina = Argentinien
+Arctic = Arktis
+US = Vereinigte Staaten
+Indiana = Indiana
+Kentucky = Kentucky
+North_Dakota = North Dakota
