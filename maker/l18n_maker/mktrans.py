@@ -40,7 +40,7 @@ def mk_overrides():
             except configparser.NoSectionError:
                 continue
             for item, value in items:
-                overrides[locfile][i][item] = value
+                overrides[locfile][i][str(item)] = value
 
     return overrides
 
