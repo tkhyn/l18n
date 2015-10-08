@@ -17,8 +17,8 @@ from .helpers import get_data_dir, log
 
 
 OVERRIDES_DIR = os.path.join(os.path.dirname(__file__), 'overrides')
-
 ITEMS = ('tz_locations', 'tz_cities', 'territories')
+ALL_TIMEZONES = pytz.all_timezones
 
 overrides = defaultdict(lambda: dict([(i, {}) for i in ITEMS]))
 
@@ -56,7 +56,7 @@ def mk_locale_trans(loc, defaults=None):
     not_missing_same = defaultdict(list)
     no_longer_in_pytz = {
         'tz_cities': list(set(trans_dict['tz_cities'].keys())
-                          .difference(pytz.common_timezones))
+                          .difference(ALL_TIMEZONES))
     }
 
     for tz in no_longer_in_pytz['tz_cities']:
@@ -100,7 +100,7 @@ def mk_locale_trans(loc, defaults=None):
         ldml = ET.parse(os.path.join(get_data_dir(), 'main',
                                      'root.xml')).getroot()
 
-    tz_required = set(pytz.common_timezones).difference(
+    tz_required = set(ALL_TIMEZONES).difference(
         defaults['tz_cities'].keys())
     for zone in ldml.find('dates').find('timeZoneNames'):
         if zone.tag != 'zone':
@@ -110,7 +110,7 @@ def mk_locale_trans(loc, defaults=None):
         try:
             tz_required.remove(key)
         except KeyError:
-            if key not in pytz.common_timezones:
+            if key not in ALL_TIMEZONES:
                 continue
 
         ex_city = zone.find('exemplarCity')
@@ -262,10 +262,10 @@ def mk_trans():
     for res, msg, post_msg in zip(
         result[1:],
         ('Some translations are missing',
-         'Some translations were overridden by entries overrides/*',
+         'Some translations were overridden by entries in an overrides/* file',
          'Some translation overrides are no longer useful as they match the '
          'CLDR translation',
-         'Some translation overrides are no longer in pytz.common_timezones'),
+         'Some translation overrides are not in pytz.all_timezones!'),
         ('You may want to add them in overrides/* files',
          None,
          'You may want to remove them from the overrides/* files',

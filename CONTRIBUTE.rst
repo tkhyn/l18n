@@ -90,7 +90,7 @@ You can have a look at the output, which will notify you if:
   'Pacific/Easter' timezone that is translated to 'Easter' while it should be
   'Easter Island') and needed to be overriden.
 - A translation was found in an ``overrides/*`` file but is not or no longer in
-  ``pytz.common_timezones``. This translation override can be safely removed.
+  ``pytz.all_timezones``. This translation override can be safely removed.
 
 
 Step 5: checking that everything is ok
