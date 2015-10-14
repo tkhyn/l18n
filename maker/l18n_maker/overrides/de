@@ -1,0 +1,19 @@
+[tz_cities]
+Antarctica/Macquarie = Macquarieinsel
+
+[tz_locations]
+Africa = Afrika
+America = Amerika
+Antarctica = Antarktis
+Arctic = Arktis
+Argentina = Argentinien
+Asia = Asien
+Atlantic = Atlantic
+Australia = Australien
+Brazil = Brasilien
+Canada = Kanada
+Europe = Europa
+Indian = Indien
+Mexico = Mexiko
+Pacific = Pazifik
+US = Vereinigte Staaten

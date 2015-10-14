@@ -85,10 +85,12 @@ You can have a look at the output, which will notify you if:
 
 - A translation was not found for a timezone or territory: this is an issue
   that must be reported and fixed asap.
-- A translation was found both in the CLDR and in a ``overrides/*`` file: this
+- A translation was found both in the CLDR and in an ``overrides/*`` file: this
   is normal in case a CLDR translation was not satisfying (e.g for the
   'Pacific/Easter' timezone that is translated to 'Easter' while it should be
   'Easter Island') and needed to be overriden.
+- A translation was found in an ``overrides/*`` file but is not or no longer in
+  ``pytz.all_timezones``. This translation override can be safely removed.
 
 
 Step 5: checking that everything is ok

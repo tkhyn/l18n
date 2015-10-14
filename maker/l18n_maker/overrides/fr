@@ -2,7 +2,6 @@
 Africa/Juba=Djouba
 America/Montreal=Montréal
 Antarctica/Macquarie=Île Macquarie
-Asia/Chita=Tchita
 Asia/Ho_Chi_Minh=Hô-Chi-Minh-Ville
 Canada/Atlantic=Atlantique
 Canada/Central=Centre
@@ -18,15 +17,18 @@ US/Mountain=Rocheuses
 US/Pacific=Pacifique
 
 [tz_locations]
-Asia = Asie
-America = Amérique
 Africa = Afrique
+America = Amérique
 Antarctica = Antarctique
-Argentina = Argentine
-Pacific = Pacifique
-Australia = Australie
-Atlantic = Atlantique
-Indian = Indien
 Arctic = Arctique
-US = Etats-Unis
+Argentina = Argentine
+Asia = Asie
+Atlantic = Atlantique
+Australia = Australie
+Brazil = Brésil
+Chile = Chili
+Indian = Indien
+Mexico = Mexique
 North_Dakota = Dakota du Nord
+Pacific = Pacifique
+US = Etats-Unis

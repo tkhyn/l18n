@@ -7,7 +7,7 @@ Locale internationalization package. Translations for places, timezones ...
 
 Works with Python 2.6+ and 3.3+
 
-Supported languages: English, French (`want to add yours?`_)
+Supported languages: English, French, German (`want to add yours?`_)
 
 
 What is l18n?
@@ -48,7 +48,7 @@ Then, in your code::
 
 l18n.tz_cities
 
-   is a mapping between all the timezones listed in ``pytz.common_timezones``
+   is a mapping between all the timezones listed in ``pytz.all_timezones``
    and human-friendly **lazy** versions of the translated name of the city
    in the current language (see `Selecting the language`_ below). For example,
    if the language is English::
@@ -65,7 +65,7 @@ l18n.tz_cities
 
 l18n.tz_fullnames
 
-   is a mapping between all the timezones listed in ``pytz.common_timezones``
+   is a mapping between all the timezones listed in ``pytz.all_timezones``
    and **lazy** versions of the timezones' full names in the current language.
    For example::
 

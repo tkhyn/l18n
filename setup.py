@@ -69,10 +69,16 @@ class PredistBuild(object):
         log.info('translation files built successfully')
 
 cmd_classes = {}
-for cmd in ('sdist', 'bdist_egg', 'bdist_rpm', 'bdist_wininst'):
-    cmd_module_name = 'setuptools.command.' + cmd
-    __import__(cmd_module_name)
-    base_class = getattr(sys.modules[cmd_module_name], cmd)
+for cmd in ('sdist', 'bdist', 'bdist_egg', 'bdist_rpm', 'bdist_wininst'):
+    try:
+        cmd_module = getattr(__import__('setuptools.command', fromlist=[cmd]),
+                             cmd)
+    except (AttributeError, ImportError):
+        # That's a distutils command (bdist)
+        cmd_module = getattr(__import__('distutils.command', fromlist=[cmd]),
+                             cmd)
+
+    base_class = getattr(cmd_module, cmd)
 
     def get_run(base_class):
         def run(self):
@@ -112,4 +118,5 @@ setup(
     install_requires=('pytz==%d.%d' % __version_info__[:2],),
     cmdclass=cmd_classes,
     zip_safe=False,
+    include_package_data=True,
 )

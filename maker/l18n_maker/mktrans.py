@@ -17,8 +17,8 @@ from .helpers import get_data_dir, log
 
 
 OVERRIDES_DIR = os.path.join(os.path.dirname(__file__), 'overrides')
-
 ITEMS = ('tz_locations', 'tz_cities', 'territories')
+ALL_TIMEZONES = pytz.all_timezones
 
 overrides = defaultdict(lambda: dict([(i, {}) for i in ITEMS]))
 
@@ -31,7 +31,8 @@ def mk_overrides():
     for locfile in os.listdir(OVERRIDES_DIR):
 
         tr = configparser.ConfigParser()
-        tr.readfp(codecs.open(os.path.join(OVERRIDES_DIR, locfile), 'r', 'utf8'))
+        tr.readfp(codecs.open(os.path.join(OVERRIDES_DIR, locfile),
+                              'r', 'utf8'))
 
         for i in ITEMS:
             try:
@@ -39,7 +40,7 @@ def mk_overrides():
             except configparser.NoSectionError:
                 continue
             for item, value in items:
-                overrides[locfile][i][item] = value
+                overrides[locfile][i][str(item)] = value
 
     return overrides
 
@@ -47,35 +48,41 @@ def mk_overrides():
 def mk_locale_trans(loc, defaults=None):
 
     if defaults is None:
-        defaults = defaultdict(lambda: {})
+        defaults = defaultdict(dict)
 
     trans_dict = deepcopy(mk_overrides()[loc])
-    missing = defaultdict(lambda: [])
-    not_missing_overrides = defaultdict(lambda: [])
-    not_missing_same = defaultdict(lambda: [])
+    missing = defaultdict(list)
+    not_missing_overrides = defaultdict(list)
+    not_missing_same = defaultdict(list)
+    no_longer_in_pytz = {
+        'tz_cities': list(set(trans_dict['tz_cities'].keys())
+                          .difference(ALL_TIMEZONES))
+    }
 
+    for tz in no_longer_in_pytz['tz_cities']:
+        trans_dict['tz_cities'].pop(tz)
 
-    def save_trans(name, key, trans):
-        cur_trans = trans_dict[name].get(key, None)
+    def save_trans(name, k, trans):
+        cur_trans = trans_dict[name].get(k, None)
         if cur_trans:
             # a translation is already defined
             if cur_trans == trans:
-                not_missing_same[name].append(key)
+                not_missing_same[name].append(k)
             else:
                 not_missing_overrides[name].append((trans, cur_trans))
         else:
             # no existing translation is defined, save it if different than
             # default value
-            if trans != defaults[name].get(key, None):
-                trans_dict[name][key] = trans
+            if trans != defaults[name].get(k, None):
+                trans_dict[name][k] = trans
 
     # there are no territories defined in root.xml, so the default ones should
     # be extracted from en.xml
     ldml = ET.parse(os.path.join(get_data_dir(), 'main', '%s.xml'
                                  % ('en' if loc == 'root' else loc))).getroot()
 
-    ter_required = set(pytz.country_names.keys()) \
-                       .difference(defaults['territories'].keys())
+    ter_required = set(pytz.country_names.keys()).difference(
+        defaults['territories'].keys())
     for territory in ldml.find('localeDisplayNames').find('territories'):
         if territory.tag != 'territory' \
         or territory.get('alt', None) is not None:
@@ -88,14 +95,13 @@ def mk_locale_trans(loc, defaults=None):
             pass
     missing['territories'].extend(ter_required)
 
-
     if loc == 'root':
         # back to root.xml for timezones
         ldml = ET.parse(os.path.join(get_data_dir(), 'main',
                                      'root.xml')).getroot()
 
-    tz_required = set(pytz.common_timezones) \
-                      .difference(defaults['tz_cities'].keys())
+    tz_required = set(ALL_TIMEZONES).difference(
+        defaults['tz_cities'].keys())
     for zone in ldml.find('dates').find('timeZoneNames'):
         if zone.tag != 'zone':
             continue
@@ -104,7 +110,7 @@ def mk_locale_trans(loc, defaults=None):
         try:
             tz_required.remove(key)
         except KeyError:
-            if key not in pytz.common_timezones:
+            if key not in ALL_TIMEZONES:
                 continue
 
         ex_city = zone.find('exemplarCity')
@@ -150,7 +156,8 @@ def mk_locale_trans(loc, defaults=None):
         # report missing translations
         missing['tz_cities'].extend(tz_required)
 
-    return trans_dict, missing, not_missing_overrides, not_missing_same
+    return trans_dict, missing, not_missing_overrides, not_missing_same, \
+           no_longer_in_pytz
 
 
 def mk_py(names):
@@ -164,9 +171,9 @@ def mk_py(names):
     py_file.write('# -*- coding: utf-8 -*-\n\n'
                   '# AUTOMATICALLY GENERATED FILE, DO NOT EDIT')
 
-    def write(name):
-        py_file.write('\n\n%s = {\n' % name)
-        for k, v in six.iteritems(names[name]):
+    def write(key):
+        py_file.write('\n\n%s = {\n' % key)
+        for k, v in six.iteritems(names[key]):
             py_file.write(u"    '%s': u'%s',\n" % (k, v.replace(u"'", u"\\'")))
         py_file.write('}')
 
@@ -211,20 +218,19 @@ msgstr ""
     po_file = codecs.open(po_path, 'w', ' utf8')
     po_file.write(header + loc + u'\\n"\n\n')
 
-    def write(name):
-        for k, v in six.iteritems(trans[name]):
+    def write(key):
+        for k, v in six.iteritems(trans[key]):
             try:
-                root_name = root_names[name][k]
+                root_name = root_names[key][k]
             except KeyError:
                 # this can happen if we're looking at tz locations and a
                 # translation is defined while there is no entry in the root
                 # In that case we need to fall back to tz_cities
-                if name == 'tz_locations':
+                if key == 'tz_locations':
                     root_name = root_names['tz_cities'][k]
                 else:
                     raise
-            po_file.write(u'msgid "' + root_name + \
-                          u'"\nmsgstr "' + v + u'"\n\n')
+            po_file.write(u'msgid "%s"\nmsgstr "%s"\n\n' % (root_name, v))
 
     for name in ITEMS:
         write(name)
@@ -242,8 +248,8 @@ def mk_trans():
     log('Starting cities and territories names translation')
 
     # translations, missing, overriden in 'overrides' folder, same value in
-    # overrides folder
-    result = [{}, {}, {}, {}]
+    # overrides folder, no longer in pytz database
+    result = [{}, {}, {}, {}, {}]
 
     defaults = None
     for loc in ('root',) + LOCALES:
@@ -256,11 +262,14 @@ def mk_trans():
     for res, msg, post_msg in zip(
         result[1:],
         ('Some translations are missing',
-         'Some translations were overridden by entries overrides/*',
-         'Some translation overrides are no longer useful'),
+         'Some translations were overridden by entries in an overrides/* file',
+         'Some translation overrides are no longer useful as they match the '
+         'CLDR translation',
+         'Some translation overrides are not in pytz.all_timezones!'),
         ('You may want to add them in overrides/* files',
          None,
-         'You may want to remove them from the overrides/* files')):
+         'You may want to remove them from the overrides/* files',
+         'You should remove them from the overrides/* files')):
 
         if res:
             log('')
@@ -278,7 +287,6 @@ def mk_trans():
             if post_msg:
                 log(post_msg)
             log('')
-
 
     trans = result[0]
 

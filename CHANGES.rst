@@ -2,6 +2,15 @@ l18n - changes
 ==============
 
 
+v2015.6.0 (15-10-2015)
+----------------------
+
+- pytz 2015.6
+- German translations by Philipp Steinhardt
+- Fixes locale files that were not included in some distribution targets (#1)
+- Translates all pytz.all_timezones rather than only pytz.common_timezones
+
+
 v2015.2.0 (22-04-2015)
 ----------------------
 
