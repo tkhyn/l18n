@@ -13,7 +13,7 @@ class FrTests(TestCase):
     def test_tz_city_translated(self):
         self.assertEqual(
             unicode(l18n.tz_cities['America/North_Dakota/New_Salem']),
-            u'New Salem [Dakota du Nord]'
+            u'New Salem (Dakota du Nord)'
         )
 
     def test_tz_fullname_translated(self):
