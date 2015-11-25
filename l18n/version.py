@@ -1,4 +1,4 @@
-__version_info__ = (2015, 7, 0, 'alpha', 0)
+__version_info__ = (2015, 7, 0, 'final', 0)
 
 
 def get_version(version=__version_info__):
