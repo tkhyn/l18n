@@ -7,7 +7,7 @@ Locale internationalization package. Translations for places, timezones ...
 
 Tested with the latest minor versions of Python 2 and 3.
 
-Supported languages: English, French, German (`want to add yours?`_)
+Supported languages: English, French, German, Czech (`want to add yours?`_)
 
 
 What is l18n?
