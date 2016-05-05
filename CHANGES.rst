@@ -1,8 +1,16 @@
 l18n - changes
 ==============
 
-v2015.7.0a (dev)
+
+v2016.4.0a (dev)
 ----------------
+
+- pytz 2016.4
+- Czech translation overrides by Jan Čermák
+
+
+v2015.7.0 (26-11-2015)
+----------------------
 
 - pytz 2015.7
 - drops support for python 2.6
