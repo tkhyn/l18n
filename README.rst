@@ -147,8 +147,14 @@ Versionning
 
 ``l18n``'s main version number matches ``pytz``'s version number. ``l18n``
 2014.10.X will be fully compatible with ``pytz`` 2014.10 whatever the value of
-X. Indeed, the primary aim is to keep ``l18n`` consistent with ``pytz``'s
-updates.
+X. Indeed, the primary aim is to keep ``l18n``'s translation files consistent
+with ``pytz``'s timezone names.
+
+Before ``l18n`` 2016.6, the ``pytz`` version was pinned against the ``l18n``
+version. Now, ``l18n`` YEAR.MONTH can now be used with any subsequent ``pytz``
+version. However, note that there may be missing translations if the 2 versions
+are too different from each other. In that case, open an issue_ to request a
+new version of ``l18n`` to be published.
 
 
 .. _`want to add yours?`:
@@ -171,3 +177,4 @@ Roadmap
 .. _pytz: https://pypi.python.org/pypi/pytz/
 .. _CLDR: http://cldr.unicode.org/
 .. _CONTRIBUTE.rst: https://bitbucket.org/tkhyn/l18n/src/tip/CONTRIBUTE.rst
+.. _issue: https://bitbucket.org/tkhyn/l18n/issues/new
