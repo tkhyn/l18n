@@ -15,7 +15,7 @@ setup(
         ],
     },
     install_requires=(
-        'pytz==%d.%d' % __version_info__[:2],
+        'pytz>=%d.%d' % __version_info__[:2],
         'polib',
         'six',
         'lxml',
