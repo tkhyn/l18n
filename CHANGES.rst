@@ -1,10 +1,18 @@
 l18n - changes
 ==============
 
+
+v2016.6.1 (19-08-2016)
+----------------------
+
+- pytz 2016.6.1
+- fix encoding issues
+
+
 v2016.6.0 (18-07-2016)
 ----------------------
 
-- pytz 2016.4
+- pytz 2016.6
 - remove strict pin against pytz version (#2)
 
 

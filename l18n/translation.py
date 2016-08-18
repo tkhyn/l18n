@@ -23,31 +23,46 @@ def set_language(language=None):
 set_language(getdefaultlocale()[0])
 
 if six.PY2:
-    def translate(s):
+    def translate(s, utf8=True):
         if _trans:
-            return _trans.ugettext(s)
-        else:
-            return s
-else:
-    def translate(s):
-        if _trans:
+            if utf8:
+                return _trans.ugettext(s)
             return _trans.gettext(s)
         else:
             return s
+else:
+    def translate(s, utf8=True):
+        if _trans:
+            t = _trans.gettext(s)
+            if utf8:
+                return t
+            return t.encode()
+        else:
+            return s
 
 
-class L18NLazyString(object):
+class L18NLazyObject(object):
+
+    def _value(self, utf8=True):
+        raise NotImplementedError
+
+    def __str__(self):
+        return self._value(utf8=six.PY3)
+
+    def __bytes__(self):
+        return self._value(utf8=False)
+
+    def __unicode__(self):
+        return self._value(utf8=True)
+
+
+class L18NLazyString(L18NLazyObject):
 
     def __init__(self, s):
         self._str = s
 
-    def _value(self):
-        return translate(self._str)
-
-    def __str__(self):
-        # needed as calling str() with an L18NLazyString actually calls
-        # __repr__ if __str__ is not defined
-        return self._value()
+    def _value(self, utf8=True):
+        return translate(self._str, utf8)
 
     def __repr__(self):
         return 'L18NLazyString <%s>' % self._str
@@ -58,17 +73,21 @@ class L18NLazyString(object):
         return getattr(self._value(), name)
 
 
-class L18NLazyStringsList(object):
+class L18NLazyStringsList(L18NLazyObject):
 
     def __init__(self, sep='/', *s):
+        # we assume that the separator and the strings have the same encoding
+        # (text_type)
         self._sep = sep
         self._strings = s
 
-    def _value(self):
-        return self._sep.join([translate(s) for s in self._strings])
-
-    def __str__(self):
-        return self._value()
+    def _value(self, utf8=True):
+        sep = self._sep
+        if utf8 and isinstance(sep, six.binary_type):
+            sep = sep.decode(encoding='utf-8')
+        elif not utf8 and isinstance(sep, six.text_type):
+            sep = sep.encode(encoding='utf-8')
+        return sep.join([translate(s, utf8) for s in self._strings])
 
     def __repr__(self):
         return 'L18NLazyStringsList <%s>' % self._sep.join(self._strings)
