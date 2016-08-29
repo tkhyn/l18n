@@ -24,8 +24,8 @@ class DictBehaviorTests(TestCase):
 
     def test_delete_UTC(self):
         # UTC is not a timezone properly speaking, let's remove it
-        utc = l18n.tz_cities['UTC']
         del l18n.tz_cities['UTC']
         with self.assertRaises(KeyError):
             six.text_type(l18n.tz_cities['UTC'])
-        l18n.tz_cities['UTC'] = utc
+        # re-add it afterwards
+        l18n.tz_cities['UTC'] = 'UTC'
