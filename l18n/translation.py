@@ -3,6 +3,7 @@ import gettext
 import bisect
 from locale import getdefaultlocale
 from collections import MutableMapping
+from copy import copy
 
 import six
 
@@ -177,6 +178,28 @@ class L18NBaseMap(MutableMapping):
     def __len__(self):
         return len(self.store)
 
+    def subset(self, keys):
+        """
+        Generates a subset of the current map (e.g. to retrieve only tzs in
+        common_timezones from the tz_cities or tz_fullnames maps)
+        """
+        sub = self.__class__()
+
+        self_keys = set(self.store.keys())
+        subset_keys = self_keys.intersection(keys)
+        removed_keys = self_keys.difference(subset_keys)
+
+        sub.store = {k: self.store[k] for k in subset_keys}
+        for loc, sorted_items in six.iteritems(self.sorted):
+            loc_keys = copy(self.sorted[loc][0])
+            loc_values = copy(self.sorted[loc][1])
+            for k in removed_keys:
+                i = loc_keys.index(k)
+                del loc_keys[i]
+                del loc_values[i]
+            sub.sorted[loc] = (loc_keys, loc_values)
+        return sub
+
 
 class L18NMap(L18NBaseMap):
 
@@ -186,7 +209,7 @@ class L18NMap(L18NBaseMap):
 
 class L18NListMap(L18NBaseMap):
 
-    def __init__(self, sep, aux=None, *args, **kwargs):
+    def __init__(self, sep='/', aux=None, *args, **kwargs):
         self._sep = sep
         self._aux = aux
         super(L18NListMap, self).__init__(*args, **kwargs)
@@ -201,3 +224,9 @@ class L18NListMap(L18NBaseMap):
             except KeyError:
                 lst.append(self._aux[s])
         return L18NLazyStringsList(self._sep, *lst)
+
+    def subset(self, keys):
+        sub = super(L18NListMap, self).subset(keys)
+        sub._sep = self._sep
+        sub._aux = self._aux
+        return sub
