@@ -113,7 +113,10 @@ setup(
         'Topic :: Software Development :: Internationalization'
     ],
     packages=('l18n',),
-    install_requires=('pytz>=%d.%d' % __version_info__[:2],),
+    install_requires=(
+        'pytz>=%d.%d' % __version_info__[:2],
+        'six'
+    ),
     cmdclass=cmd_classes,
     zip_safe=False,
     include_package_data=True,

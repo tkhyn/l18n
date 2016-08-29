@@ -2,8 +2,28 @@ l18n - changes
 ==============
 
 
-v2016.4.0a (dev)
-----------------
+v2016.6.1 (23-08-2016)
+----------------------
+
+- fix requirement 'six'
+
+
+v2016.6.1 (19-08-2016)
+----------------------
+
+- pytz 2016.6.1
+- fix encoding issues
+
+
+v2016.6.0 (18-07-2016)
+----------------------
+
+- pytz 2016.6
+- remove strict pin against pytz version (#2)
+
+
+v2016.4.0 (05-05-2016)
+----------------------
 
 - pytz 2016.4
 - Czech translation overrides by Jan Čermák
