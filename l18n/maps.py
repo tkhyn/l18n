@@ -12,7 +12,7 @@ try:
 
     _main_dict = dict(__maps.tz_cities)
     _aux_dict = {}
-    for k, v in  six.iteritems(__maps.tz_locations):
+    for k, v in six.iteritems(__maps.tz_locations):
         if k in _main_dict:
             _main_dict[k] = v
         else:

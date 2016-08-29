@@ -1,39 +1,70 @@
 import os
 import gettext
+import bisect
 from locale import getdefaultlocale
 from collections import MutableMapping
 
 import six
 
 
-_trans = None
+class Trans(object):
+
+    def __init__(self):
+        self.registry = {}
+        self.current = None
+        self.set(getdefaultlocale()[0])
+
+    def __getitem__(self, language):
+        if language:
+            try:
+                return self.registry[language]
+            except KeyError:
+                self.registry[language] = gettext.translation(
+                    'l18n',
+                    os.path.join(os.path.dirname(__file__), 'locale'),
+                    languages=[language],
+                    fallback=True
+                )
+                return self.registry[language]
+        else:
+            return None
+
+    def set(self, language):
+        self.current = self[language]
+
+    def gettext(self, s):
+        try:
+            return self.current.gettext(s)
+        except AttributeError:
+            return s
+
+    if six.PY2:
+        def ugettext(self, s):
+            try:
+                return self.current.ugettext(s)
+            except AttributeError:
+                return s
+
+
+_trans = Trans()
 
 
 def set_language(language=None):
-    global _trans
-    if language:
-        _trans = gettext.translation(
-            'l18n',
-            os.path.join(os.path.dirname(__file__), 'locale'),
-            languages=[language],
-            fallback=True
-        )
-    else:
-        _trans = None
-set_language(getdefaultlocale()[0])
+    _trans.set(language)
+
 
 if six.PY2:
-    def translate(s, utf8=True):
-        if _trans:
+    def translate(s, utf8=True, trans=_trans):
+        if trans:
             if utf8:
-                return _trans.ugettext(s)
-            return _trans.gettext(s)
+                return trans.ugettext(s)
+            return trans.gettext(s)
         else:
             return s
 else:
-    def translate(s, utf8=True):
-        if _trans:
-            t = _trans.gettext(s)
+    def translate(s, utf8=True, trans=_trans):
+        if trans:
+            t = trans.gettext(s)
             if utf8:
                 return t
             return t.encode()
@@ -87,7 +118,8 @@ class L18NLazyStringsList(L18NLazyObject):
             sep = sep.decode(encoding='utf-8')
         elif not utf8 and isinstance(sep, six.text_type):
             sep = sep.encode(encoding='utf-8')
-        return sep.join([translate(s, utf8) for s in self._strings])
+        return sep.join([translate(s, utf8)
+                         for s in self._strings])
 
     def __repr__(self):
         return 'L18NLazyStringsList <%s>' % self._sep.join(self._strings)
@@ -105,18 +137,42 @@ class L18NBaseMap(MutableMapping):
 
     def __init__(self, *args, **kwargs):
         self.store = dict(*args, **kwargs)
+        self.sorted = {}
 
     def __getitem__(self, key):
         raise NotImplementedError
 
     def __setitem__(self, key, value):
         self.store[key] = value
+        for locale, (keys, values) in six.iteritems(self.sorted):
+            tr = translate(value, trans=_trans[locale])
+            i = bisect.bisect_left(values, tr)
+            keys.insert(i, key)
+            values.insert(i, tr)
 
     def __delitem__(self, key):
         del self.store[key]
+        for keys, values in self.sorted.values():
+            i = keys.index(key)
+            del keys[i]
+            del values[i]
 
     def __iter__(self):
-        return iter(self.store)
+        loc = _trans.current._info['language'] if _trans.current else None
+        try:
+            return iter(self.sorted[loc][0])
+        except KeyError:
+            keys = []
+            values = []
+            # we can't use iteritems here, as we need to call __getitem__
+            # via self[key]
+            for key in iter(self.store):
+                value = six.text_type(self[key])
+                i = bisect.bisect_left(values, value)
+                keys.insert(i, key)
+                values.insert(i, value)
+            self.sorted[loc] = (keys, values)
+            return iter(keys)
 
     def __len__(self):
         return len(self.store)
