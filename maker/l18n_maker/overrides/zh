@@ -1,0 +1,17 @@
+[tz_cities]
+Antarctica/Macquarie=麦格理	
+Pacific/Bougainville=布干维尔	
+
+[tz_locations]
+Africa = 非洲
+America = 北美洲
+Argentina = 阿根廷
+Antartica = 南极洲
+Asia = 亚洲
+Australia = 澳大拉西亚	
+Brazil = 巴西
+Canada = 加拿大
+Chile = 智利
+Europe = 欧洲
+Mexico = 墨西哥
+US = 美国
