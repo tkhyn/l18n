@@ -1,7 +1,7 @@
 l18n
 ====
 
-|copyright| 2015 Thomas Khyn
+|copyright| 2014-2016 Thomas Khyn
 
 Locale internationalization package. Translations for places, timezones ...
 
