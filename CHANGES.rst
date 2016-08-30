@@ -1,8 +1,14 @@
 l18n - changes
 ==============
 
+v2016.6.3 (dev)
+---------------
 
-v2016.6.1 (23-08-2016)
+- items are now sorted in maps iterators
+- subsets support
+
+
+v2016.6.2 (23-08-2016)
 ----------------------
 
 - fix requirement 'six'

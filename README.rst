@@ -24,11 +24,11 @@ they are in, it's much better if they can select in their language, as in some
 cases, the differences with the english name can be significant, hence the
 place to look for it when it's sorted in alphabetical order.
 
-And as I am lazy, I thought of a way to - almost - autmatically fetch the
+And as I am lazy, I thought of a way to - almost - automatically fetch the
 translations from the CLDR_ (Unicode's Common Locale Data Repository) database.
 
 Integrating function to link timezone to country codes, there was no reason not
-to try and provide translations also for the latters. In the near future, I -
+to try and provide translations also for the latter. In the near future, I -
 or contributors - may also add currencies or measurement units fetched from
 the CLDR database ...
 
@@ -106,6 +106,35 @@ l18n.territories
    The values in the above mentionned dictionaries can be overriden by your
    own translations. The dictionaries are not read-only and values can be
    added or removed at your convenience.
+
+
+Lazy mappings special features (v.2016.6.3 onwards)
+---------------------------------------------------
+
+The fore-mentioned ``tz_cities``, ``tz_fullnames`` and ``territories`` are not
+simple dictionaries and provide additional features.
+
+Sorting
+.......
+
+When iterating over an ``L18NMap``, the items, keys or values are *yielded* in
+alphabetical order **in the currently selected language**. For performance, the
+results are cached by language, so the sort is only performed once per language.
+Note that the values are still lazy objects that are evaluated only when
+rendered into a string.
+
+Subsets
+.......
+
+It is possible to generate a new ``L18NMap`` from an existing one by using the
+``subset`` method and passing an iterable of ``keys`` that need to be kept in
+the new mapping. Any cached sort is also used to generate the new cache, so
+that there is nothing to re-calculate in the new subset.
+
+For example, one can generate a map of translations for
+``pytz.common_timezones``::
+
+   >>> common_cities = l18n.tz_cities.subset(pytz.common_timezones.keys())
 
 
 Selecting the language
