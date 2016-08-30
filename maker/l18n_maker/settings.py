@@ -1,6 +1,6 @@
 import os
 
-LOCALES = ('en', 'fr', 'de', 'cs',)
+LOCALES = ('en', 'fr', 'de', 'cs', 'zh')
 
 CLDR_DATA_URL = 'http://www.unicode.org/Public/cldr/latest'
 
