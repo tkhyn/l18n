@@ -31,6 +31,10 @@ class DictBehaviorTests(TestCase):
         # re-add it afterwards
         l18n.tz_cities['UTC'] = 'UTC'
 
+    def test_repr(self):
+        # test that all lazy strings are `repr`-ed correctly
+        [repr(tz) for tz in l18n.tz_fullnames.values()]
+
 
 class SortingTests(TestCase):
 

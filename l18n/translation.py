@@ -105,7 +105,7 @@ class L18NLazyString(L18NLazyObject):
         return translate(self._str, utf8)
 
     def __repr__(self):
-        return 'L18NLazyString <%s>' % self._str
+        return 'L18NLazyString <%s>' % repr(self._str)
 
     def __getattr__(self, name):
         # fallback to call the value's attribute in case it's not found in
@@ -139,7 +139,9 @@ class L18NLazyStringsList(L18NLazyObject):
                          for s in self._strings])
 
     def __repr__(self):
-        return 'L18NLazyStringsList <%s>' % self._sep.join(self._strings)
+        return 'L18NLazyStringsList <%s>' % self._sep.join([
+            repr(s) for s in self._strings
+        ])
 
     def __getattr__(self, name):
         # fallback to call the value's attribute in case it's not found in
