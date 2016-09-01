@@ -3,7 +3,7 @@ import gettext
 import bisect
 from locale import getdefaultlocale
 from collections import MutableMapping
-from copy import copy
+from copy import copy, deepcopy
 
 import six
 
@@ -93,6 +93,14 @@ class L18NLazyString(L18NLazyObject):
     def __init__(self, s):
         self._str = s
 
+    def __copy__(self):
+        return self.__class__(self._str)
+
+    def __deepcopy__(self, memo):
+        result = self.__copy__()
+        memo[id(self)] = result
+        return result
+
     def _value(self, utf8=True):
         return translate(self._str, utf8)
 
@@ -112,6 +120,14 @@ class L18NLazyStringsList(L18NLazyObject):
         # (text_type)
         self._sep = sep
         self._strings = s
+
+    def __copy__(self):
+        return self.__class__(self._sep, *self._strings)
+
+    def __deepcopy__(self, memo):
+        result = self.__copy__()
+        memo[id(self)] = result
+        return result
 
     def _value(self, utf8=True):
         sep = self._sep
@@ -139,6 +155,19 @@ class L18NBaseMap(MutableMapping):
     def __init__(self, *args, **kwargs):
         self.store = dict(*args, **kwargs)
         self.sorted = {}
+
+    def __copy__(self):
+        result = self.__class__()
+        result.store = self.store
+        result.sorted = self.sorted
+        return result
+
+    def __deepcopy__(self, memo):
+        result = self.__class__()
+        memo[id(self)] = result
+        result.store = deepcopy(self.store, memo)
+        result.sorted = deepcopy(self.sorted, memo)
+        return result
 
     def __getitem__(self, key):
         raise NotImplementedError
@@ -214,6 +243,18 @@ class L18NListMap(L18NBaseMap):
         self._aux = aux
         super(L18NListMap, self).__init__(*args, **kwargs)
 
+    def __copy__(self):
+        result = super(L18NListMap, self).__copy__()
+        result._sep = self._sep
+        result._aux = self._aux
+        return result
+
+    def __deepcopy__(self, memo):
+        result = super(L18NListMap, self).__deepcopy__(memo)
+        result._sep = self._sep
+        result._aux = None if self._aux is None else deepcopy(self._aux, memo)
+        return result
+
     def __getitem__(self, key):
         strs = key.split(self._sep)
         strs[-1] = key
@@ -228,5 +269,5 @@ class L18NListMap(L18NBaseMap):
     def subset(self, keys):
         sub = super(L18NListMap, self).subset(keys)
         sub._sep = self._sep
-        sub._aux = self._aux
+        sub._aux = deepcopy(self._aux)
         return sub
