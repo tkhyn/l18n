@@ -2,6 +2,14 @@ l18n - changes
 ==============
 
 
+v2016.6.4 (07-09-2016)
+----------------------
+
+- Chinese (zh) translation overrides by Charlotte Blanc
+- copy/deepcopy support for l18n lazy strings and dictionaries
+- fix charset bug on python 2
+
+
 v2016.6.3 (30-08-2016)
 ----------------------
 
