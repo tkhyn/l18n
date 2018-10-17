@@ -6,7 +6,7 @@ MIT License (see LICENSE.txt)
 """
 
 import os
-import sys
+import io
 
 from setuptools import setup
 from distutils import log
@@ -90,13 +90,12 @@ for cmd in ('sdist', 'bdist', 'bdist_egg', 'bdist_rpm', 'bdist_wininst'):
         'run': get_run(base_class)
     })
 
-
 # setup function parameters
 setup(
     name='l18n',
     version=__version__,
     description='Internationalization for pytz timezones and territories',
-    long_description=open(os.path.join('README.rst')).read(),
+    long_description=io.open('README.rst', mode='r', encoding='utf-8').read(),
     author='Thomas Khyn',
     author_email='thomas@ksytek.com',
     url='https://bitbucket.org/tkhyn/l18n',
