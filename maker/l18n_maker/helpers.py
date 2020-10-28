@@ -4,8 +4,8 @@ import os
 import zipfile
 
 import requests
-
 from six import BytesIO
+
 from .settings import CLDR_DATA_URL
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), 'cldr_db')
