@@ -2,10 +2,11 @@ import os
 import gettext
 import bisect
 from locale import getdefaultlocale
-from collections import MutableMapping
 from copy import copy, deepcopy
 
 import six
+
+from .compat import MutableMapping
 
 
 class Trans(object):
