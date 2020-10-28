@@ -3,8 +3,8 @@ from __future__ import print_function
 import os
 import sys
 import shutil
-from imp import reload
 
+from .compat import reload
 from .maker import build
 
 
