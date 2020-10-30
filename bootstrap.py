@@ -115,6 +115,7 @@ if options.setuptools_to_dir is not None:
     setup_args['to_dir'] = options.setuptools_to_dir
 
 ez['use_setuptools'](**setup_args)
+import setuptools
 import pkg_resources
 
 # This does not (always?) update the default working set.  We will
