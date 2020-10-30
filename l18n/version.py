@@ -1,7 +1,7 @@
 import subprocess
 from datetime import datetime
 
-__version_info__ = (2018, 5, 0, 'alpha', 0)
+__version_info__ = (2020, 6, 0, 'final', 0)
 
 
 def get_version(version=__version_info__):

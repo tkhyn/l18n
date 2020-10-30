@@ -2,7 +2,13 @@ l18n - changes
 ==============
 
 
-v2018.5.0 (18-10-2018)
+v2020.6.20 (31-10-2020)
+-----------------------
+
+- fix maker encoding messages
+- suppress python 3.7+ deprecated imports messages
+
+v2018.5.0 (18-10-2018)2
 ----------------------
 
 - fix installation bug on non-UTF8 platforms
