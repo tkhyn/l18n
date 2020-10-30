@@ -206,5 +206,5 @@ Roadmap
 
 .. _pytz: https://pypi.python.org/pypi/pytz/
 .. _CLDR: http://cldr.unicode.org/
-.. _CONTRIBUTE.rst: https://bitbucket.org/tkhyn/l18n/src/tip/CONTRIBUTE.rst
-.. _issue: https://bitbucket.org/tkhyn/l18n/issues/new
+.. _CONTRIBUTE.rst: https://github.com/tkhyn/l18n/src/tip/CONTRIBUTE.rst
+.. _issue: https://github.com/tkhyn/l18n/issues/new

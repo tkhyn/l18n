@@ -98,7 +98,7 @@ setup(
     long_description=io.open('README.rst', mode='r', encoding='utf-8').read(),
     author='Thomas Khyn',
     author_email='thomas@ksytek.com',
-    url='https://bitbucket.org/tkhyn/l18n',
+    url='https://github.com/tkhyn/l18n',
     keywords=['pytz', 'translation', 'i18n'],
     classifiers=[
         'Programming Language :: Python',
