@@ -2,8 +2,13 @@ l18n - changes
 ==============
 
 
-v2020.6.20 (31-10-2020)
------------------------
+v2020.6.1 (31-10-2020)
+----------------------
+
+- fix pytz version number
+
+v2020.6.0 (31-10-2020)
+----------------------
 
 - fix maker encoding messages
 - suppress python 3.7+ deprecated imports messages
