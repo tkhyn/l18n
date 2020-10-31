@@ -113,7 +113,7 @@ setup(
     ],
     packages=('l18n',),
     install_requires=(
-        'pytz>=%d.%d' % __version_info__[:2],
+        'pytz>=2020.1',
         'six'
     ),
     cmdclass=cmd_classes,
