@@ -75,8 +75,10 @@ for cmd in ('sdist', 'bdist', 'bdist_egg', 'bdist_rpm', 'bdist_wininst'):
                              cmd)
     except (AttributeError, ImportError):
         # That's a distutils command (bdist)
-        cmd_module = getattr(__import__('distutils.command', fromlist=[cmd]),
-                             cmd)
+        try:
+            cmd_module = getattr(__import__('distutils.command', fromlist=[cmd]), cmd)
+        except AttributeError:
+            continue
 
     base_class = getattr(cmd_module, cmd)
 
