@@ -5,7 +5,7 @@ l18n
 
 Locale internationalization package. Translations for places, timezones ...
 
-Tested with the latest minor versions of Python 2 and 3.
+Tested with the latest minor versions of Python 3.
 
 Supported languages: English, French, German, Czech, Chinese
 (`want to add yours?`_)
