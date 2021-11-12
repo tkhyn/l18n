@@ -1,7 +1,7 @@
 """
 l18n
 Locale internationalization package
-(c) 2014-2020 Thomas Khyn and contributors (see CONTRIBUTORS.rst)
+(c) 2014-2021 Thomas Khyn and contributors (see CONTRIBUTORS.rst)
 MIT License (see LICENSE.txt)
 """
 
