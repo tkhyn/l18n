@@ -11,7 +11,7 @@ especially if you're not familiar with zc.buildout and/or tox.
 The tests
 ---------
 
-l18n uses nose_ for testing. All the tests are in the
+l18n uses py.test_ for testing. All the tests are in the
 ``tests`` directory, and the nose test runner uses the ``all-modules`` option
 which is defined in ``tests/setup.cfg``. This means that any object which is
 not intended to contain tests (e.g. a base classes module) shall contain the
@@ -118,7 +118,6 @@ In each environment, the language files will be re-generated so that the
 build process is tested in every configuration.
 
 
-.. _nose: http://nose.readthedocs.org/en/latest/
-.. _django_nose: https://pypi.python.org/pypi/django-nose
+.. _py.test: https://pytest.org/
 .. _zc.buildout: http://www.buildout.org/en/latest/
 .. _tox: https://testrun.org/tox/
