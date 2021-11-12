@@ -134,7 +134,7 @@ class L18NLazyStringsList(L18NLazyObject):
         sep = self._sep
         if utf8 and isinstance(sep, six.binary_type):
             sep = sep.decode(encoding='utf-8')
-        elif not utf8 and isinstance(sep, six.text_type):
+        elif not utf8 and isinstance(sep, str):
             sep = sep.encode(encoding='utf-8')
         return sep.join([translate(s, utf8)
                          for s in self._strings])
@@ -200,7 +200,7 @@ class L18NBaseMap(MutableMapping):
             # we can't use iteritems here, as we need to call __getitem__
             # via self[key]
             for key in iter(self.store):
-                value = six.text_type(self[key])
+                value = str(self[key])
                 i = bisect.bisect_left(values, value)
                 keys.insert(i, key)
                 values.insert(i, value)

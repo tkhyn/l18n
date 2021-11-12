@@ -4,7 +4,7 @@ import os
 import zipfile
 
 import requests
-from six import BytesIO
+from io import BytesIO
 
 from .settings import CLDR_DATA_URL
 

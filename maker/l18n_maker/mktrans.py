@@ -8,7 +8,6 @@ from itertools import chain
 
 import pytz
 import polib
-import six
 from lxml import etree as ET
 
 from .compat import configparser
@@ -173,7 +172,7 @@ def mk_py(names):
 
     def write(key):
         py_file.write('\n\n%s = {\n' % key)
-        for k, v in six.iteritems(names[key]):
+        for k, v in names[key].items():
             py_file.write(u"    '%s': u'%s',\n" % (k, v.replace(u"'", u"\\'")))
         py_file.write('}')
 
@@ -219,7 +218,7 @@ msgstr ""
     po_file.write(header + loc + u'\\n"\n\n')
 
     def write(key):
-        for k, v in six.iteritems(trans[key]):
+        for k, v in trans[key].items():
             try:
                 root_name = root_names[key][k]
             except KeyError:
@@ -274,11 +273,11 @@ def mk_trans():
         if res:
             log('')
             log(msg)
-            for loc, dic in six.iteritems(res):
-                for name, ids in six.iteritems(dic):
+            for loc, dic in res.items():
+                for name, ids in dic.items():
                     if not ids:
                         continue
-                    if isinstance(ids[0], six.string_types):
+                    if isinstance(ids[0], str):
                         to_join = ids
                     else:
                         # ids is a list of doubles
