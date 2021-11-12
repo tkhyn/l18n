@@ -27,6 +27,21 @@ DEV_STATUS = {'pre': '2 - Pre-Alpha',
               'rc': '4 - Beta',
               'final': '5 - Production/Stable'}
 
+CMD_PACKAGES = {
+    'sdist': 'setuptools.command',
+    'bdist': 'distutils.command',
+    'bdist_wheel': 'wheel',
+    'bdist_egg': 'setuptools.command',
+    'bdist_rpm': 'setuptools.command',
+}
+
+try:
+    from setuptools.command import bdist_wininst
+    CMD_PACKAGES['bdist_wininst'] = 'setuptools.command'
+except ImportError:
+    # python > 3.10
+    pass
+
 
 class PredistBuild(object):
     """
@@ -69,15 +84,8 @@ class PredistBuild(object):
         log.info('translation files built successfully')
 
 cmd_classes = {}
-for cmd in ('sdist', 'bdist', 'bdist_egg', 'bdist_rpm', 'bdist_wininst'):
-    try:
-        cmd_module = getattr(__import__('setuptools.command', fromlist=[cmd]),
-                             cmd)
-    except (AttributeError, ImportError):
-        # That's a distutils command (bdist)
-        cmd_module = getattr(__import__('distutils.command', fromlist=[cmd]),
-                             cmd)
-
+for cmd, module in CMD_PACKAGES.items():
+    cmd_module = getattr(__import__(module, fromlist=[cmd]), cmd)
     base_class = getattr(cmd_module, cmd)
 
     def get_run(base_class):
