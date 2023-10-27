@@ -1,7 +1,11 @@
 import os
 import gettext
 import bisect
-from locale import getdefaultlocale
+try:
+    # Python >= 3.11
+    from locale import getlocale
+except AttributeError:
+    from locale import getdefaultlocale as getlocale
 from copy import copy, deepcopy
 
 import six
@@ -14,7 +18,7 @@ class Trans(object):
     def __init__(self):
         self.registry = {}
         self.current = None
-        self.set(getdefaultlocale()[0])
+        self.set(getlocale()[0])
 
     def __getitem__(self, language):
         if language:
